@@ -32,6 +32,20 @@ class CustomClient(discord.Client):
             if len(args) > 1:
                 await message.channel.send(' '.join(args[1:]))
 
+        if message.content.lower()[:8] == '>pfpwarn' and message.channel.id == 575101474032582676:
+            try:
+                user_to_mention = message.content[9:]
+            except IndexError:
+                pass
+            else:
+                if user_to_mention[0] != '<':
+                    user_to_mention = '<@' + str(user_to_mention) + '>'
+                caller = '<@' + str(message.author.id) + '>'
+                time.sleep(86400)
+                to_send = str(caller) + ', check on ' + str(user_to_mention) + '\'s profile picture!'
+                await message.channel.send(to_send)
+
+
 
 
 
