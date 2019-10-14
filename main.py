@@ -1,5 +1,5 @@
 import os
-
+from copypastas import *
 import discord
 import asyncio
 from aiofile import AIOFile, LineReader, Writer
@@ -15,9 +15,11 @@ token = os.getenv('DISCORD_TOKEN')
 
 class CustomClient(discord.Client):
     prefix = '$'
+    version = '0.1.0'
 
     async def on_ready(self):
         print(f'{self.user} has connected to Discord!')
+        await self.change_presence(activity=discord.Game(name=self.prefix + 'help'))
 
     async def add_reminder(self, message, duration, reminder_text=''):
         async with AIOFile('reminders.txt', 'a+') as reminders:
@@ -56,8 +58,44 @@ class CustomClient(discord.Client):
         if message.author == client.user:
             return
 
-        if message.content.lower()[:(len(self.prefix) + 4)] == self.prefix + 'ping':
+        if message.content.lower() == 'protobot reset prefix':
+            self.prefix = '$'
+            await message.channel.send('Prefix reset to `' + self.prefix + '`' )
+            await self.change_presence(activity=discord.Game(name=self.prefix + 'help'))
+
+        if message.content.lower().startswith(self.prefix + 'ping'):
             await message.channel.send('Pong!')
+
+        if message.content.lower().startswith(self.prefix + 'version'):
+            to_send = 'My current version is ' + self.version + '!'
+            await message.channel.send(to_send)
+
+        if message.content.lower().startswith(self.prefix + 'owo'):
+            await message.channel.send(owo)
+
+        if message.content.lower().startswith(self.prefix + 'updateprefix'):
+            args = message.content.split(' ')[1:]
+            if not args:
+                await message.channel.send('That\'s not a valid prefix TwT')
+            else:
+                if len(args[0]) > 3:
+                    await message.channel.send('>///< your prefix is too big~')
+                else:
+                    self.prefix = args[0]
+                    await message.channel.send('Prefix changed to `' + self.prefix + '` succesfully!')
+                    await self.change_presence(activity=discord.Game(name=self.prefix + 'help'))
+
+        if message.content.lower().startswith(self.prefix + 'help'):
+            p = self.prefix
+            to_send = '`' + p + 'version` : prints current command version\n'
+            to_send += '`' + p + 'updateprefix [new_prefix]` : changes prefix to given prefix (max 3 characters)\n'
+            to_send += '`' + p + 'ping` : pong!\n'
+            to_send += '`' + p + 'help` : you just used it!\n'
+            to_send += '`' + p + 'reminder [duration in seconds] [message]` : sends a reminder after the given number of seconds\n'
+            to_send += '`' + p + 'owo` : what\'s this?\n'
+            to_send += '`protobot reset prefix` : reset prefix to default'
+            await message.channel.send(to_send)
+
 
         if message.content.lower()[:(len(self.prefix) + 8)] == self.prefix + 'reminder':
             args = message.content.lower()[(len(self.prefix) + 9):].split(' ')
@@ -72,7 +110,7 @@ class CustomClient(discord.Client):
                     await self.add_reminder(message, int(args[0]), reminder_text=reminder_text)
                     await message.channel.send(init_message)
                 else:
-                    await message.channel.send('Invalid arguments given!')
+                    await message.channel.send('S-sorry... I didn\'t really understand that...')
 
         if message.content.lower().startswith('>pfpwarn') and message.channel.id == 575101474032582676:
             try:
@@ -87,7 +125,6 @@ class CustomClient(discord.Client):
                 await message.channel.send(init_message)
                 to_send = 'Check on ' + str(user_to_mention) + '\'s profile picture!'
                 await self.add_reminder(message, duration=86400, reminder_text=to_send)
-
 
 
 
