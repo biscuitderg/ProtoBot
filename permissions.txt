@@ -1,0 +1,5 @@
+admin:all
+head moderator:all
+moderator:all !updateprefix
+security:all !updateprefix
+recruit:all !updateprefix !reminder
