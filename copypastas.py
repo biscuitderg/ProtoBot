@@ -1,13 +1,13 @@
 def help_message(role, p):
     to_send = 'Commands:\n'
-    if role in ['admin', 'head moderator', 'moderator', 'security', 'recruit']:
+    if role in ['admin', 'head-moderator', 'moderator', 'security', 'recruit']:
         to_send += '`' + p + 'version` : prints current bot version\n'
         to_send += '`' + p + 'ping` : pong!\n'
         to_send += '`' + p + 'help` : you just used it!\n'
         to_send += '`' + p + 'owo` : what\'s this?\n'
     if role != 'recruit':
         to_send += '`' + p + 'reminder [duration in seconds] [message]` : sends a reminder after the given number of seconds\n'
-    if role == 'admin' or role == 'head moderator':
+    if role == 'admin' or role == 'head-moderator':
         to_send += '`' + p + 'updateprefix [new_prefix]` : changes prefix to given prefix (max 3 characters)\n'
         to_send += '`protobot reset prefix` : reset prefix to default'
     return to_send
