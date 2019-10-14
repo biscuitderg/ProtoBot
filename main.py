@@ -87,7 +87,7 @@ class CustomClient(discord.Client):
 
         if message.content.lower().startswith(self.prefix + 'help'):
             p = self.prefix
-            to_send = '`' + p + 'version` : prints current command version\n'
+            to_send = '`' + p + 'version` : prints current bot version\n'
             to_send += '`' + p + 'updateprefix [new_prefix]` : changes prefix to given prefix (max 3 characters)\n'
             to_send += '`' + p + 'ping` : pong!\n'
             to_send += '`' + p + 'help` : you just used it!\n'
