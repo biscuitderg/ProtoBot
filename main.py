@@ -14,7 +14,7 @@ load_dotenv()
 token = os.getenv('DISCORD_TOKEN')
 
 class CustomClient(discord.Client):
-    prefix = '$'
+    prefix = '!'
     version = '0.1.0'
 
     async def on_ready(self):
@@ -59,7 +59,7 @@ class CustomClient(discord.Client):
             return
 
         if message.content.lower() == 'protobot reset prefix':
-            self.prefix = '$'
+            self.prefix = '!'
             await message.channel.send('Prefix reset to `' + self.prefix + '`' )
             await self.change_presence(activity=discord.Game(name=self.prefix + 'help'))
 
