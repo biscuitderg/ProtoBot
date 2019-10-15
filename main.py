@@ -26,7 +26,7 @@ for line in lines:
 
 class CustomClient(discord.Client):
     prefix = '$'
-    version = '0.2.0'
+    version = '0.2.1'
 
     async def on_ready(self):
         print(f'{self.user} has connected to Discord!')
@@ -37,7 +37,7 @@ class CustomClient(discord.Client):
             await self.check_reminders()
 
     async def add_reminder(self, message, duration, reminder_text=''):
-        async with AIOFile('reminders.txt', 'a+') as reminders:
+        async with AIOFile('reminders.txt', 'a+', encoding='utf-8') as reminders:
             writer = Writer(reminders)
             if not reminder_text:
                 raw_message = message.content.split(' ')[2:]
@@ -49,9 +49,9 @@ class CustomClient(discord.Client):
 
 
     async def check_reminders(self):
-        with open('reminders.txt', 'r+') as reminders:
+        with open('reminders.txt', 'r+', encoding='utf-8') as reminders:
             lines = reminders.readlines()
-        async with AIOFile('reminders.txt', 'w+') as reminders:
+        async with AIOFile('reminders.txt', 'w+', encoding='utf-8') as reminders:
             writer = Writer(reminders)
             for line in lines:
                 items = line.strip('\n').split(' ')
@@ -85,7 +85,7 @@ class CustomClient(discord.Client):
                 await message.channel.send('Prefix reset to `' + self.prefix + '`' )
                 await self.change_presence(activity=discord.Game(name=self.prefix + 'help'))
             else:
-                await message.channel.send('You don\'t have permission to use this command!')
+                await message.channel.send('I uh, can\'t do that for you! ᶦ\'ᵐ ˢᵒʳʳʸ')
 
         if message.content.lower().startswith(self.prefix + 'ping'):
             await message.channel.send('Pong!')
@@ -110,7 +110,7 @@ class CustomClient(discord.Client):
                         await message.channel.send('Prefix changed to `' + self.prefix + '` succesfully!')
                         await self.change_presence(activity=discord.Game(name=self.prefix + 'help'))
             else:
-                await message.channel.send('You don\'t have permission to use this command!')
+                await message.channel.send('I uh, can\'t do that for you! ᶦ\'ᵐ ˢᵒʳʳʸ')
 
         if message.content.lower().startswith(self.prefix + 'help'):
             to_send = help_message(highest_role, self.prefix)
@@ -133,7 +133,7 @@ class CustomClient(discord.Client):
                     else:
                         await message.channel.send('S-sorry... I didn\'t really understand that...')
             else:
-                await message.channel.send('You don\'t have permission to use this command!')
+                await message.channel.send('I uh, can\'t do that for you! ᶦ\'ᵐ ˢᵒʳʳʸ')
 
         if message.content.lower().startswith('>pfpwarn') and message.channel.id == 575101474032582676 and highest_role != 'recruit':
             try:
