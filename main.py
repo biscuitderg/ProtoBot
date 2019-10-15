@@ -26,7 +26,7 @@ for line in lines:
 
 class CustomClient(discord.Client):
     prefix = '$'
-    version = '0.2.1'
+    version = '0.2.2'
 
     async def on_ready(self):
         print(f'{self.user} has connected to Discord!')
@@ -79,11 +79,12 @@ class CustomClient(discord.Client):
         else:
             return
 
+
         if message.content.lower() == 'protobot reset prefix':
             if check_permission(highest_role, role_dict, 'updateprefix'):
                 self.prefix = '$'
                 await message.channel.send('Prefix reset to `' + self.prefix + '`' )
-                await self.change_presence(activity=discord.Game(name=self.prefix + 'help'))
+                await self.change_presence(activity=discord.Game(name=self.prefix + 'help | v' + self.version))
             else:
                 await message.channel.send('I uh, can\'t do that for you! ᶦ\'ᵐ ˢᵒʳʳʸ')
 
@@ -97,6 +98,9 @@ class CustomClient(discord.Client):
         if message.content.lower().startswith(self.prefix + 'owo'):
             await message.channel.send(owo)
 
+        if message.content.lower().startswith(self.prefix + 'bignut'):
+            await message.channel.send('█▀█ █▄█ ▀█▀')
+
         if message.content.lower().startswith(self.prefix + 'updateprefix'):
             if check_permission(highest_role, role_dict, 'updateprefix'):
                 args = message.content.split(' ')[1:]
@@ -108,7 +112,7 @@ class CustomClient(discord.Client):
                     else:
                         self.prefix = args[0]
                         await message.channel.send('Prefix changed to `' + self.prefix + '` succesfully!')
-                        await self.change_presence(activity=discord.Game(name=self.prefix + 'help'))
+                        await self.change_presence(activity=discord.Game(name=self.prefix + 'help | v' + self.version))
             else:
                 await message.channel.send('I uh, can\'t do that for you! ᶦ\'ᵐ ˢᵒʳʳʸ')
 

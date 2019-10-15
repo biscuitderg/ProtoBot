@@ -5,6 +5,7 @@ def help_message(role, p):
         to_send += '`' + p + 'ping` : pong!\n'
         to_send += '`' + p + 'help` : you just used it!\n'
         to_send += '`' + p + 'owo` : what\'s this?\n'
+        to_send += '`' + p + 'bignut` : █▀█ █▄█ ▀█▀\n'
     if role != 'recruit':
         to_send += '`' + p + 'reminder [duration in seconds] [message]` : sends a reminder after the given number of seconds\n'
     if role == 'admin' or role == 'head-moderator':
