@@ -1,19 +1,37 @@
+
+
+# Define help message command
 def help_message(role, p):
     to_send = 'Commands:\n'
     if role in ['admin', 'head-moderator', 'moderator', 'security', 'recruit']:
+        to_send += '`-------Misc-------`\n'
         to_send += '`' + p + 'version` : prints current bot version\n'
         to_send += '`' + p + 'ping` : pong!\n'
-        to_send += '`' + p + 'help` : you just used it!\n'
+        to_send += '`' + p + 'help` : you just used it!\n`-------Fun!-------`\n'
         to_send += '`' + p + 'owo` : what\'s this?\n'
         to_send += '`' + p + 'bignut` : █▀█ █▄█ ▀█▀\n'
     if role != 'recruit':
-        to_send += '`' + p + 'reminder [duration in seconds] [message]` : sends a reminder after the given number of seconds\n'
+        to_send += '`----Moderation----`\n`' + p + 'reminder [duration in seconds] [message]` : sends a reminder after the given number of seconds\n'
     if role == 'admin' or role == 'head-moderator':
-        to_send += '`' + p + 'updateprefix [new_prefix]` : changes prefix to given prefix (max 3 characters)\n'
+        to_send += '`------Admins------`\n`' + p + 'updateprefix [new_prefix]` : changes prefix to given prefix (max 3 characters)\n'
         to_send += '`protobot reset prefix` : reset prefix to default'
     return to_send
 
 
+# Load permissions from permissions.txt
+role_dict = {}
+role_list = []
+with open('permissions.txt', 'r+') as roles:
+    lines = roles.readlines()
+for line in lines:
+    to_dict = line.strip('\n').split(':')
+    role_list.append(to_dict[0])
+    role_dict[to_dict[0]] = {}
+    role_dict[to_dict[0]]['allow'] = [c for c in to_dict[1].split(' ') if c[0] != '!']
+    role_dict[to_dict[0]]['deny'] = [c[1:] for c in to_dict[1].split(' ') if c[0] == '!']
+
+
+# Define command to check permissions for a role
 def check_permission(role, permissions, command):
     allow = permissions[role]['allow']
     deny = permissions[role]['deny']
