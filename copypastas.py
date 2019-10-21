@@ -2,19 +2,23 @@
 
 # Define help message command
 def help_message(role, p):
-    to_send = 'Commands:\n'
+    to_send = ''
     if role in ['admin', 'head-moderator', 'moderator', 'security', 'recruit']:
+        to_send += 'Commands:\n'
         to_send += '`-------Misc-------`\n'
         to_send += '`' + p + 'version` : prints current bot version\n'
         to_send += '`' + p + 'ping` : pong!\n'
         to_send += '`' + p + 'help` : you just used it!\n`-------Fun!-------`\n'
         to_send += '`' + p + 'owo` : what\'s this?\n'
         to_send += '`' + p + 'bignut` : █▀█ █▄█ ▀█▀\n'
-    if role != 'recruit':
-        to_send += '`----Moderation----`\n`' + p + 'reminder [duration in seconds] [message]` : sends a reminder after the given number of seconds\n'
-    if role == 'admin' or role == 'head-moderator':
-        to_send += '`------Admins------`\n`' + p + 'updateprefix [new_prefix]` : changes prefix to given prefix (max 3 characters)\n'
-        to_send += '`protobot reset prefix` : reset prefix to default'
+        if role != 'recruit':
+            to_send += '`----Moderation----`\n'
+            to_send += '`' + p + 'reminder [duration in seconds] [message]` : sends a reminder after the given number of seconds\n'
+        if role == 'admin' or role == 'head-moderator':
+            to_send += '`------Admins------`\n'
+            to_send += '`' + p + 'log [channel] [optional: month]` : logs given channel for given month or last full month if no month is specified\n'
+            to_send += '`' + p + 'updateprefix [new_prefix]` : changes prefix to given prefix (max 3 characters)\n'
+            to_send += '`protobot reset prefix` : reset prefix to default'
     return to_send
 
 

@@ -1,5 +1,5 @@
 admin:all
 head-moderator:all
-moderator:all !updateprefix
-security:all !updateprefix
-recruit:all !updateprefix !reminder
+moderator:all !updateprefix !log
+security:all !updateprefix !channelscrape !log
+recruit:all !updateprefix !reminder !channelscrape !log
