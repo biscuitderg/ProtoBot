@@ -11,9 +11,16 @@ def help_message(role, p):
         to_send += '`' + p + 'help` : you just used it!\n`-------Fun!-------`\n'
         to_send += '`' + p + 'owo` : what\'s this?\n'
         to_send += '`' + p + 'bignut` : █▀█ █▄█ ▀█▀\n'
+        to_send += '`' + p + 'seal` : What the fuck did you just fucking say about me, you little bitch?\n'
         if role != 'recruit':
             to_send += '`----Moderation----`\n'
             to_send += '`' + p + 'reminder [duration in seconds] [message]` : sends a reminder after the given number of seconds\n'
+            to_send += '`' + p + 'kennel [user] [optional: reason]` : kennels user and DMs them to notify\n'
+            to_send += '`' + p + 'mute [user] [optional: reason]` : mutes user\n'
+            to_send += '`' + p + 'pfpwarn [user]` : DMs user to notify of NSFW pfp\n'
+            to_send += '`' + p + 'hitlerwarn [user]` : DMs user to notify of rulebreaking pfp\n'
+        if role != 'recruit' or role != 'security':
+            to_send += '`' + p + 'role [user] [list of roles]` : roles separated by commas, toggles unless + or - specified before a role\n'
         if role == 'admin' or role == 'head-moderator':
             to_send += '`------Admins------`\n'
             to_send += '`' + p + 'log [channel] [optional: month]` : logs given channel for given month or last full month if no month is specified\n'
