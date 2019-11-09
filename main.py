@@ -22,7 +22,7 @@ server_id = 241029406796152834
 kenneled_role_id = 533806085010620426
 kennel_id = 533805835424497666
 mute_role_id = 520032107578523678
-joins_id = 641066795909775392
+joins_id = 590990121206153267
 internal_cache = {}
 eastern = pytz.timezone('US/Eastern')
 
