@@ -10,6 +10,8 @@ import datetime
 import re
 import pickle
 import random
+import math
+import pytz
 
 load_dotenv()
 token = os.getenv('DISCORD_TOKEN')
@@ -20,8 +22,9 @@ server_id = 241029406796152834
 kenneled_role_id = 533806085010620426
 kennel_id = 533805835424497666
 mute_role_id = 520032107578523678
+joins_id = 641066795909775392
 internal_cache = {}
-
+eastern = pytz.timezone('US/Eastern')
 
 # Create custom bot class
 class CustomBot(commands.Bot):
@@ -32,6 +35,7 @@ class CustomBot(commands.Bot):
 
         self.server = await self.fetch_guild(server_id)
         self.log_channel = self.get_channel(log_channel_id)
+        self.join_channel = self.get_channel(joins_id)
         self.kennel_role = self.server.get_role(kenneled_role_id)
         self.muted_role = self.server.get_role(mute_role_id)
         self.me = await self.server.fetch_member(self_id)
@@ -40,10 +44,23 @@ class CustomBot(commands.Bot):
             await asyncio.sleep(60)
             await check_reminders()
 
-    async def log_entry(self, embed_text, title=''):
+    async def log_entry(self, embed_text, title='', joinleave=False, color=False, member=None):
         """Add entry to protobot logs"""
-        embed = discord.Embed.from_dict({'description' : embed_text, 'title' : title})
-        await self.log_channel.send(embed=embed)
+        embed_dict = {'description' : embed_text, 'title' : title}
+        embed = discord.Embed.from_dict(embed_dict)
+        footertext = datetime.datetime.now(eastern).strftime('%I:%M %p')
+        if joinleave:
+            embed_dict['color'] = color.value
+            embed = discord.Embed.from_dict(embed_dict)
+            if member:
+                embed.set_thumbnail(url=member.avatar_url)
+                footertext = 'ID: ' + str(member.id) + ' | At ' + footertext
+            embed.set_footer(text=footertext)
+            await self.join_channel.send(embed=embed)
+            pass
+        else:
+            embed.set_footer(text='Called at ' + footertext)
+            await self.log_channel.send(embed=embed)
         pass
 
     async def process_commands(self, message):
@@ -87,11 +104,43 @@ class CustomBot(commands.Bot):
         # If you don't call this coroutine you can't process commands
         await self.process_commands(message)
 
+    async def on_member_join(self, member):
+        embed_text = '<@' + str(member.id) + '> ' + member.name + '#' + member.discriminator
+        now = datetime.datetime.utcnow()
+        delta = now - member.created_at
+        if delta.total_seconds() < 5*86400:
+            s = delta.total_seconds()
+            d = math.floor(s / 86400)
+            h = math.floor((s % 86400) / 1400)
+            m = math.floor(((s % 86400) % 1400) / 60)
+            if m > 0:
+                time_to_add = str(m) + ' minutes ago'
+                if m == 1:
+                    time_to_add = '1 minute ago'
+                if h > 0:
+                    if h == 1:
+                        time_to_add = '1 hour, ' + time_to_add
+                    else:
+                        time_to_add = str(h) + ' hours, ' + time_to_add
+                    if d > 0:
+                        if d == 1:
+                            time_to_add = '1 day, ' + time_to_add
+                        else:
+                            time_to_add = str(d) + ' days, ' + time_to_add
+            else:
+                time_to_add = 'just now'
+            embed_text += '\nNew account: created ' + time_to_add
+        await self.log_entry(embed_text, title='User Joined', joinleave=True, color=discord.Colour.green(), member=member)
+
+    async def on_member_remove(self, member):
+        embed_text = '<@' + str(member.id) + '> ' + member.name + '#' + member.discriminator
+        await self.log_entry(embed_text, title='User Left', joinleave=True, color=discord.Colour.red(), member=member)
+
 
 # Call custom bot class
 bot = CustomBot(command_prefix='$', max_messages=20000)
 bot.remove_command('help')
-version = '2.0.0'
+version = '2.1.0'
 
 
 # Define helper commands/functions
@@ -221,7 +270,7 @@ class Moderation(commands.Cog, name='Moderation'):
         await bot.log_entry(embed_text, title='Command used')
         if not msg:
             msg = 'kenneled'
-        await ctx.channel.send('Following roles changed: ' + msg)
+        await ctx.channel.send('Following roles changed for ' + user_to_change.name + '#' + user_to_change.discriminator + ': ' + msg)
 
     @bot.command(pass_context=True)
     async def mute(self, ctx, user, *args):
@@ -245,7 +294,7 @@ class Moderation(commands.Cog, name='Moderation'):
         await bot.log_entry(embed_text, title='Command used')
         if not msg:
             msg = 'muted'
-        await ctx.channel.send('Following roles changed: ' + msg)
+        await ctx.channel.send('Following roles changed for ' + user_to_change.name + '#' + user_to_change.discriminator + ': ' + msg)
 
     @bot.command(pass_context=True)
     async def role(self, ctx, user, *args):
