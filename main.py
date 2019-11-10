@@ -106,7 +106,7 @@ class CustomBot(commands.Bot):
         delta = now - member.created_at
         s = delta.total_seconds()
         if s < 5*86400:
-            embed_text += '\n' + duration_text(s)
+            embed_text += '\nNew account: created ' + duration_text(s)
         await self.log_entry(embed_text, title='User Joined', joinleave=True, color=discord.Colour.green(), member=member)
 
     async def on_member_remove(self, member):
