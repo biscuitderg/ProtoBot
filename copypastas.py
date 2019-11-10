@@ -1,4 +1,4 @@
-
+import math
 
 # Define help message command
 def help_message(role, p):
@@ -40,6 +40,41 @@ for line in lines:
     role_dict[to_dict[0]] = {}
     role_dict[to_dict[0]]['allow'] = [c for c in to_dict[1].split(' ') if c[0] != '!']
     role_dict[to_dict[0]]['deny'] = [c[1:] for c in to_dict[1].split(' ') if c[0] == '!']
+
+def duration_text(s):
+    m = int(math.floor(s / 60)) % 60
+    h = int(math.floor(s / 3600)) % 24
+    d = int(math.floor(s / 86400))
+    if d == 1:
+        dtext = '1 day'
+    elif d > 1:
+        dtext = str(d) + ' days'
+    else:
+        dtext = ''
+    if h == 1:
+        htext = '1 hour'
+    elif h > 1:
+        htext = str(h) + ' hours'
+    else:
+        htext = ''
+    if m == 1:
+        mtext = '1 minute'
+    elif m > 1:
+        mtext = str(m) + ' minutes'
+    else:
+        mtext = ''
+    textlist = []
+    if dtext:
+        textlist.append(dtext)
+    if htext:
+        textlist.append(htext)
+    if mtext:
+        textlist.append(mtext)
+    if textlist:
+        fulltext = ', '.join(textlist) + ' ago'
+    else:
+        fulltext = 'just now'
+    return fulltext
 
 
 # Define command to check permissions for a role

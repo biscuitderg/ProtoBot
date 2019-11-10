@@ -44,22 +44,19 @@ class CustomBot(commands.Bot):
             await asyncio.sleep(60)
             await check_reminders()
 
-    async def log_entry(self, embed_text, title='', joinleave=False, color=False, member=None):
+    async def log_entry(self, embed_text, title='', joinleave=False, color=None, member=None):
         """Add entry to protobot logs"""
-        embed_dict = {'description' : embed_text, 'title' : title}
-        embed = discord.Embed.from_dict(embed_dict)
-        footertext = datetime.datetime.now(eastern).strftime('%I:%M %p')
+        if not color:
+            color = self.me.color
+        embed = discord.Embed(title=title, timestamp=datetime.datetime.utcnow(), color=color, description=embed_text)
         if joinleave:
-            embed_dict['color'] = color.value
-            embed = discord.Embed.from_dict(embed_dict)
             if member:
                 embed.set_thumbnail(url=member.avatar_url)
-                footertext = 'ID: ' + str(member.id) + ' | At ' + footertext
+                footertext = 'ID: ' + str(member.id)
             embed.set_footer(text=footertext)
             await self.join_channel.send(embed=embed)
             pass
         else:
-            embed.set_footer(text='Called at ' + footertext)
             await self.log_channel.send(embed=embed)
         pass
 
@@ -100,7 +97,6 @@ class CustomBot(commands.Bot):
             else:
                 await message.channel.send('I uh, can\'t do that for you! ᶦ\'ᵐ ˢᵒʳʳʸ')
 
-
         # If you don't call this coroutine you can't process commands
         await self.process_commands(message)
 
@@ -108,28 +104,9 @@ class CustomBot(commands.Bot):
         embed_text = '<@' + str(member.id) + '> ' + member.name + '#' + member.discriminator
         now = datetime.datetime.utcnow()
         delta = now - member.created_at
-        if delta.total_seconds() < 5*86400:
-            s = delta.total_seconds()
-            d = math.floor(s / 86400)
-            h = math.floor((s % 86400) / 1400)
-            m = math.floor(((s % 86400) % 1400) / 60)
-            if m > 0:
-                time_to_add = str(m) + ' minutes ago'
-                if m == 1:
-                    time_to_add = '1 minute ago'
-                if h > 0:
-                    if h == 1:
-                        time_to_add = '1 hour, ' + time_to_add
-                    else:
-                        time_to_add = str(h) + ' hours, ' + time_to_add
-                    if d > 0:
-                        if d == 1:
-                            time_to_add = '1 day, ' + time_to_add
-                        else:
-                            time_to_add = str(d) + ' days, ' + time_to_add
-            else:
-                time_to_add = 'just now'
-            embed_text += '\nNew account: created ' + time_to_add
+        s = delta.total_seconds()
+        if s < 5*86400:
+            embed_text += '\n' + duration_text(s)
         await self.log_entry(embed_text, title='User Joined', joinleave=True, color=discord.Colour.green(), member=member)
 
     async def on_member_remove(self, member):
@@ -140,7 +117,7 @@ class CustomBot(commands.Bot):
 # Call custom bot class
 bot = CustomBot(command_prefix='$', max_messages=20000)
 bot.remove_command('help')
-version = '2.1.0'
+version = '2.1.1'
 
 
 # Define helper commands/functions
