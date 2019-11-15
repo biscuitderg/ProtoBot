@@ -5,12 +5,10 @@ import discord
 import asyncio
 from dotenv import load_dotenv
 from discord.ext import commands
-from aiofile import AIOFile, LineReader, Writer
+from aiofile import AIOFile, Writer
 import datetime
 import re
-import pickle
 import random
-import math
 import pytz
 
 load_dotenv()
@@ -117,7 +115,7 @@ class CustomBot(commands.Bot):
 # Call custom bot class
 bot = CustomBot(command_prefix='$', max_messages=20000)
 bot.remove_command('help')
-version = '2.1.1'
+version = '2.2.0'
 
 
 # Define helper commands/functions
@@ -145,19 +143,33 @@ async def check_reminders():
         lines = reminders.readlines()
     async with AIOFile('reminders.txt', 'w+', encoding='utf-8') as reminders:
         writer = Writer(reminders)
-        for line in lines:
-            items = line.strip('\n').split(' ')
-            reminder_date = datetime.datetime.fromisoformat(items[0])
-            channel = bot.get_channel(int(items[1]))
-            caller = items[2]
-            to_send = ''
-            if len(items) > 3:
-                to_send = '<@' + caller + '>: ' + ' '.join(items[3:])
-            if reminder_date < datetime.datetime.utcnow():
-                if to_send:
-                    await channel.send(to_send)
+        for rline in lines:
+            p = re.compile('\d+\-\d+\-\d+T\d+:\d+\d+:\d+\.\d+')
+            iso_time = p.findall(rline)
+            if not iso_time:
+                pass
             else:
-                await writer(line)
+                p = re.compile('\d{18}')
+                ids = p.findall(rline)
+                if len(ids) != 2:
+                    pass
+                else:
+                    if len(rline) > 66:
+                        message = rline[65:].strip('\n')
+                    else:
+                        message = 'No message given!'
+                    try:
+                        reminder_date = datetime.datetime.fromisoformat(iso_time[0])
+                    except ValueError:
+                        reminder_date = datetime.datetime.fromisoformat('2' + iso_time[0])
+                    channel = bot.get_channel(int(ids[0]))
+                    caller = ids[1]
+                    to_send = '<@' + caller + '>: ' + message
+                    if reminder_date < datetime.datetime.utcnow():
+                        if to_send:
+                            await channel.send(to_send)
+                    else:
+                        await writer(rline)
 
 
 # Creating command groups
@@ -334,15 +346,45 @@ class Moderation(commands.Cog, name='Moderation'):
             await bot.log_entry(embed_text, title='Command used')
 
     @bot.command(pass_context=True)
-    async def pfpwarn(self, ctx, user):
-        """Warn for NSFW pfp!"""
+    async def warn(self, ctx, type, user, *args):
+        """Warn for something!"""
         # get user
         p = re.compile('\d+')
-        user_id = int(p.findall(user)[0])
-        user_to_dm = await bot.server.fetch_member(user_id)
-        msg = 'We noticed you have a NSFW profile picture. We do not allow this as it violates Discord ToS. If you don\'' \
-            + 't change it within 24 hours we will have no choice but to ban you from the server until you have a SFW '\
-            + 'icon. Thanks for understanding ^^ - <@' + str(ctx.author.id) + '> at /r/yiff'
+        try:
+            user_id = int(p.findall(user)[0])
+            user_to_dm = await bot.server.fetch_member(user_id)
+        except IndexError:
+            await ctx.channel.send('Invalid format! Put the warning type before the user!')
+            return
+        needsreminder = True
+        if type.lower() == 'nsfw' or type.lower() == 'pfp':
+            msg = 'We noticed you have a NSFW profile picture. We do not allow this as it violates Discord ToS. If you don\'' \
+                + 't change it within 24 hours we will have no choice but to ban you from the server until you have a SFW '\
+                + 'icon. Thanks for understanding ^^ - <@' + str(ctx.author.id) + '> at /r/yiff'
+            reason = 'NSFW PFP'
+        elif type.lower() == 'hitler':
+            msg = 'We noticed you have a rulebreaking profile picture. We do not allow this as it violates server rules on allowable images. If you don\'' \
+                  + 't change it within 24 hours we will have no choice but to ban you from the server until you have an acceptable ' \
+                  + 'icon. Thanks for understanding ^^ - <@' + str(ctx.author.id) + '> at /r/yiff'
+            reason = 'Rulebreaking PFP'
+        elif type.lower() == 'status':
+            msg = 'We noticed you have a rulebreaking Discord status. We do not allow this as it violates server rules on allowable content. If you don\'' \
+                  + 't change it within 24 hours we will have no choice but to ban you from the server until you have an acceptable ' \
+                  + 'status. Thanks for understanding ^^ - <@' + str(ctx.author.id) + '> at /r/yiff'
+            reason = 'Status'
+        elif type.lower() == 'name' or type.lower() == 'nickname' or type.lower() == 'nick':
+            msg = 'We noticed you have a rulebreaking Discord name or nickname. We do not allow this as it violates server rules on allowable content. If you don\'' \
+                  + 't change it within 24 hours we will have no choice but to ban you from the server until you have an acceptable ' \
+                  + 'name or nickname. Thanks for understanding ^^ - <@' + str(ctx.author.id) + '> at /r/yiff'
+            reason = 'Name/Nickname'
+        elif type.lower() == 'custom' or type.lower() == 'warn':
+            msg = ' '.join(args)
+            reason = msg
+            msg = 'You have received a warning from <@' + str(ctx.author.id) + '> in /r/yiff for: ' + msg
+            needsreminder = False
+        else:
+            await ctx.channel.send('Invalid warn type given! Try one of these: `nsfw`, `hitler`, `status`, `name`, `custom`!')
+            return
         try:
             if user_to_dm.dm_channel:
                 await user_to_dm.dm_channel.send(msg)
@@ -352,40 +394,15 @@ class Moderation(commands.Cog, name='Moderation'):
         except discord.HTTPException or discord.Forbidden:
             await ctx.channel.send('Could not send DM!')
         else:
-            await ctx.channel.send('User notified!')
+            await ctx.channel.send('User ' + user_to_dm.name + '#' + user_to_dm.discriminator + ' notified!')
         embed_text = '<@' + str(
-            ctx.author.id) + '> ' + ctx.author.name + '#' + ctx.author.discriminator + ' used `$pfpwarn` command on <@'\
-            + str(user_id) + '> ' + user_to_dm.name + '#' + user_to_dm.discriminator
+            ctx.author.id) + '> ' + ctx.author.name + '#' + ctx.author.discriminator + ' used `$warn` command on <@'\
+            + str(user_id) + '> ' + user_to_dm.name + '#' + user_to_dm.discriminator + '\nReason: ' + reason
         await bot.log_entry(embed_text, title='Command used')
-        await add_reminder(ctx, 24*60*60, 'Check on <@' + str(user_to_dm.id) + '>\'s pfp!')
-        await ctx.channel.send('Reminder added!')
+        if needsreminder:
+            await add_reminder(ctx, 24*60*60, 'Check on <@' + str(user_to_dm.id) + '>\'s pfp!')
+            await ctx.channel.send('Reminder added!')
 
-    @bot.command(pass_context=True)
-    async def hitlerwarn(self, ctx, user):
-        """Warn for rulebreaking pfp!"""
-        # get user
-        p = re.compile('\d+')
-        user_id = int(p.findall(user)[0])
-        user_to_dm = await bot.server.fetch_member(user_id)
-        msg = 'We noticed you have a rulebreaking profile picture. We do not allow this as it violates server rules on allowable. If you don\'' \
-              + 't change it within 24 hours we will have no choice but to ban you from the server until you have an acceptable ' \
-              + 'icon. Thanks for understanding ^^ - <@' + str(ctx.author.id) + '> at /r/yiff'
-        try:
-            if user_to_dm.dm_channel:
-                await user_to_dm.dm_channel.send(msg)
-            else:
-                await user_to_dm.create_dm()
-                await user_to_dm.dm_channel.send(msg)
-        except discord.HTTPException or discord.Forbidden:
-            await ctx.channel.send('Could not send DM!')
-        else:
-            await ctx.channel.send('User notified!')
-        embed_text = '<@' + str(
-            ctx.author.id) + '> ' + ctx.author.name + '#' + ctx.author.discriminator + ' used `$hitlerwarn` command on <@' \
-                     + str(user_id) + '> ' + user_to_dm.name + '#' + user_to_dm.discriminator
-        await bot.log_entry(embed_text, title='Command used')
-        await add_reminder(ctx, 24 * 60 * 60, 'Check on <@' + str(user_to_dm.id) + '>\'s pfp!')
-        await ctx.channel.send('Reminder added!')
 
 # Admin category
 class Admin(commands.Cog, name='Administrative'):
@@ -480,11 +497,6 @@ class Admin(commands.Cog, name='Administrative'):
 
 class Testing(commands.Cog, name=''):
     """Commands being tested go here!"""
-    @bot.command(pass_context=True)
-    async def pickletest(self, ctx):
-        with open('testpickle', 'w+') as jar:
-            message = await ctx.channel.history(limit=1).flatten()
-            pickle.dump(message, jar)
 
     @bot.command(pass_context=True)
     async def channelscrape(self, ctx, channel, *args):
