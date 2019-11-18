@@ -115,7 +115,7 @@ class CustomBot(commands.Bot):
 # Call custom bot class
 bot = CustomBot(command_prefix='$', max_messages=20000)
 bot.remove_command('help')
-version = '2.2.0'
+version = '2.2.1'
 
 
 # Define helper commands/functions
@@ -151,7 +151,7 @@ async def check_reminders():
             else:
                 p = re.compile('\d{18}')
                 ids = p.findall(rline)
-                if len(ids) != 2:
+                if len(ids) < 2:
                     pass
                 else:
                     if len(rline) > 66:
@@ -361,22 +361,22 @@ class Moderation(commands.Cog, name='Moderation'):
             msg = 'We noticed you have a NSFW profile picture. We do not allow this as it violates Discord ToS. If you don\'' \
                 + 't change it within 24 hours we will have no choice but to ban you from the server until you have a SFW '\
                 + 'icon. Thanks for understanding ^^ - <@' + str(ctx.author.id) + '> at /r/yiff'
-            reason = 'NSFW PFP'
+            reason = 'NSFW pfp'
         elif type.lower() == 'hitler':
             msg = 'We noticed you have a rulebreaking profile picture. We do not allow this as it violates server rules on allowable images. If you don\'' \
                   + 't change it within 24 hours we will have no choice but to ban you from the server until you have an acceptable ' \
                   + 'icon. Thanks for understanding ^^ - <@' + str(ctx.author.id) + '> at /r/yiff'
-            reason = 'Rulebreaking PFP'
+            reason = 'rulebreaking pfp'
         elif type.lower() == 'status':
             msg = 'We noticed you have a rulebreaking Discord status. We do not allow this as it violates server rules on allowable content. If you don\'' \
                   + 't change it within 24 hours we will have no choice but to ban you from the server until you have an acceptable ' \
                   + 'status. Thanks for understanding ^^ - <@' + str(ctx.author.id) + '> at /r/yiff'
-            reason = 'Status'
+            reason = 'status'
         elif type.lower() == 'name' or type.lower() == 'nickname' or type.lower() == 'nick':
             msg = 'We noticed you have a rulebreaking Discord name or nickname. We do not allow this as it violates server rules on allowable content. If you don\'' \
                   + 't change it within 24 hours we will have no choice but to ban you from the server until you have an acceptable ' \
                   + 'name or nickname. Thanks for understanding ^^ - <@' + str(ctx.author.id) + '> at /r/yiff'
-            reason = 'Name/Nickname'
+            reason = 'name/nickname'
         elif type.lower() == 'custom' or type.lower() == 'warn':
             msg = ' '.join(args)
             reason = msg
@@ -400,7 +400,7 @@ class Moderation(commands.Cog, name='Moderation'):
             + str(user_id) + '> ' + user_to_dm.name + '#' + user_to_dm.discriminator + '\nReason: ' + reason
         await bot.log_entry(embed_text, title='Command used')
         if needsreminder:
-            await add_reminder(ctx, 24*60*60, 'Check on <@' + str(user_to_dm.id) + '>\'s pfp!')
+            await add_reminder(ctx, 86400, 'Check on <@' + str(user_to_dm.id) + '>\'s ' + reason + '!')
             await ctx.channel.send('Reminder added!')
 
 
