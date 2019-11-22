@@ -10,11 +10,14 @@ import datetime
 import re
 import random
 import pytz
+import sys
+import traceback
 
 load_dotenv()
 token = os.getenv('DISCORD_TOKEN')
 scrape_channel = None
 log_channel_id = 641066795909775392
+error_channel_id = 647470122243588137
 self_id = 632658384767811604
 server_id = 241029406796152834
 kenneled_role_id = 533806085010620426
@@ -27,6 +30,47 @@ eastern = pytz.timezone('US/Eastern')
 # Create custom bot class
 class CustomBot(commands.Bot):
 
+    async def on_command_error(self, context, exception):
+        """|coro|
+
+        The default command error handler provided by the bot.
+
+        By default this prints to :data:`sys.stderr` however it could be
+        overridden to have a different implementation.
+
+        This only fires if you do not specify any listeners for command error.
+        """
+        if self.extra_events.get('on_command_error', None):
+            return
+
+        if hasattr(context.command, 'on_error'):
+            return
+
+        cog = context.cog
+        if cog:
+            if commands.Cog._get_overridden_method(cog.cog_command_error) is not None:
+                return
+
+        print('Ignoring exception in command {}:'.format(context.command), file=sys.stderr)
+        traceback.print_exception(type(exception), exception, exception.__traceback__, file=sys.stderr)
+        await self.error_channel.send('Ignoring exception in command {}:'.format(context.command) + '\n' +
+                                      str(type(exception)) + ' ' + str(exception) + ': ' + str(exception.__traceback__))
+
+    async def on_error(self, event_method, *args, **kwargs):
+        """|coro|
+
+        The default error handler provided by the client.
+
+        By default this prints to :data:`sys.stderr` however it could be
+        overridden to have a different implementation.
+        Check :func:`~discord.on_error` for more details.
+        """
+
+        print('Ignoring exception in {}'.format(event_method), file=sys.stderr)
+        print('h')
+        traceback.print_exc()
+        await self.error_channel.send('Ignoring exception in {}'.format(event_method))
+
     async def on_ready(self):
         print(f'{self.user} has connected to Discord!')
         await self.change_presence(activity=discord.Game(name=self.command_prefix + 'help | v' + version))
@@ -37,6 +81,7 @@ class CustomBot(commands.Bot):
         self.kennel_role = self.server.get_role(kenneled_role_id)
         self.muted_role = self.server.get_role(mute_role_id)
         self.me = await self.server.fetch_member(self_id)
+        self.error_channel = self.get_channel(error_channel_id)
 
         while True:
             await asyncio.sleep(60)
@@ -115,7 +160,7 @@ class CustomBot(commands.Bot):
 # Call custom bot class
 bot = CustomBot(command_prefix='$', max_messages=20000)
 bot.remove_command('help')
-version = '2.2.1'
+version = '2.2.2'
 
 
 # Define helper commands/functions
@@ -154,14 +199,20 @@ async def check_reminders():
                 if len(ids) < 2:
                     pass
                 else:
-                    if len(rline) > 66:
-                        message = rline[65:].strip('\n')
+                    if len(rline) > 65:
+                        message = rline[64:].strip('\n')
                     else:
                         message = 'No message given!'
                     try:
                         reminder_date = datetime.datetime.fromisoformat(iso_time[0])
                     except ValueError:
-                        reminder_date = datetime.datetime.fromisoformat('2' + iso_time[0])
+                        try:
+                            reminder_date = datetime.datetime.fromisoformat('2' + iso_time[0])
+                        except ValueError:
+                            rline = rline.replace('\x00', '')
+                            p = re.compile('\d+\-\d+\-\d+T\d+:\d+\d+:\d+\.\d+')
+                            iso_time = p.findall(rline)
+                            reminder_date = datetime.datetime.fromisoformat(iso_time[0])
                     channel = bot.get_channel(int(ids[0]))
                     caller = ids[1]
                     to_send = '<@' + caller + '>: ' + message
