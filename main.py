@@ -24,8 +24,10 @@ kenneled_role_id = 533806085010620426
 kennel_id = 533805835424497666
 mute_role_id = 520032107578523678
 joins_id = 590990121206153267
+starboard_channel = 665048291012116480
 internal_cache = {}
 eastern = pytz.timezone('US/Eastern')
+testmode = True
 
 # Create custom bot class
 class CustomBot(commands.Bot):
@@ -54,7 +56,71 @@ class CustomBot(commands.Bot):
         print('Ignoring exception in command {}:'.format(context.command), file=sys.stderr)
         traceback.print_exception(type(exception), exception, exception.__traceback__, file=sys.stderr)
         await self.error_channel.send('Ignoring exception in command {}:'.format(context.command) + '\n' +
-                                      str(type(exception)) + ' ' + str(exception) + ': ' + str(exception.__traceback__))
+                                      repr(type(exception)) + ' ' + str(exception) + ': ' + repr(exception.__traceback__))
+
+    async def on_raw_reaction_add(self, payload):
+        if payload.emoji.name == '❌':
+            id = payload.message_id
+            for channel in self.get_all_channels():
+                if str(channel.type) == 'text':
+                    try:
+                        message = await channel.fetch_message(id)
+                    except (discord.errors.NotFound, discord.errors.Forbidden):
+                        pass
+                    else:
+                        reactions = message.reactions
+                        url = message.jump_url
+                        contains_x = [r for r in reactions if r.emoji == '❌']
+                        if contains_x[0].count == 1:
+                            title = 'Deletion marked'
+                            embed_text = 'Message flagged in <#' + str(message.channel.id) + '>'
+                            embed_text += '\n❌ count: ' + str(contains_x[0].count)
+                            embed_text += '\n[Jump to message](' + url + ')'
+
+                            image_url = ''
+                            attachments = message.attachments
+                            if len(attachments) == 0:
+                                embed_text += '\n\nNo image provided!'
+                            elif len(attachments) == 1:
+                                image_url = attachments[0].url
+                            elif len(attachments) > 1:
+                                embed_text += '\n\nMultiple images provided, jump to message.'
+
+                            embed = discord.Embed(title=title, timestamp=datetime.datetime.utcnow(),
+                                                  color=discord.Colour.red(), description=embed_text)
+                            if image_url:
+                                embed.set_image(url=image_url)
+                            footer_text = 'Message ID: ' + str(id)
+                            embed.set_footer(text=footer_text)
+
+                            # send new message
+                            await self.embed_channel.send(embed=embed)
+                        elif contains_x[0].count > 1:
+                            print('new react count', contains_x[0].count)
+                            # fetch old deletion board message
+                            messages = await self.embed_channel.history().flatten()
+                            embed_message = discord.utils.find(lambda m: m.embeds[0].footer.text[-18:] == str(id), messages)
+                            embed = embed_message.embeds[0]
+                            embed_text = 'Message flagged in <#' + str(message.channel.id) + '>'
+                            embed_text += '\n❌ count: ' + str(contains_x[0].count)
+                            embed_text += '\n[Jump to message](' + url + ')'
+
+                            image_url = ''
+                            attachments = message.attachments
+                            if len(attachments) == 0:
+                                embed_text += '\n\nNo image provided!'
+                            elif len(attachments) == 1:
+                                image_url = attachments[0].url
+                            elif len(attachments) > 1:
+                                embed_text += '\n\nMultiple images provided, jump to message.'
+
+                            new_embed = discord.Embed(title=embed.title, timestamp=embed.timestamp,
+                                                  color=embed.colour, description=embed_text)
+                            if image_url:
+                                new_embed.set_image(url=image_url)
+                            footer_text = 'Message ID: ' + str(id)
+                            new_embed.set_footer(text=footer_text)
+                            await embed_message.edit(embed=new_embed)
 
     async def on_error(self, event_method, *args, **kwargs):
         """|coro|
@@ -67,11 +133,11 @@ class CustomBot(commands.Bot):
         """
 
         print('Ignoring exception in {}'.format(event_method), file=sys.stderr)
-        print('h')
         traceback.print_exc()
-        await self.error_channel.send('Ignoring exception in {}'.format(event_method))
+        add_excep = ''.join(traceback.format_exc())
+        await self.error_channel.send('Ignoring exception in {}'.format(event_method) + '\n' + add_excep)
 
-    async def on_ready(self):
+    async def on_ready(self, ):
         print(f'{self.user} has connected to Discord!')
         await self.change_presence(activity=discord.Game(name=self.command_prefix + 'help | v' + version))
 
@@ -82,6 +148,10 @@ class CustomBot(commands.Bot):
         self.muted_role = self.server.get_role(mute_role_id)
         self.me = await self.server.fetch_member(self_id)
         self.error_channel = self.get_channel(error_channel_id)
+        self.embed_channel = self.get_channel(starboard_channel)
+        self.testmode = testmode
+        if self.testmode:
+            print('Test mode!')
 
         while True:
             await asyncio.sleep(60)
@@ -144,23 +214,26 @@ class CustomBot(commands.Bot):
         await self.process_commands(message)
 
     async def on_member_join(self, member):
-        embed_text = '<@' + str(member.id) + '> ' + member.name + '#' + member.discriminator
-        now = datetime.datetime.utcnow()
-        delta = now - member.created_at
-        s = delta.total_seconds()
-        if s < 5*86400:
-            embed_text += '\nNew account: created ' + duration_text(s)
-        await self.log_entry(embed_text, title='User Joined', joinleave=True, color=discord.Colour.green(), member=member)
+        if not self.testmode:
+            embed_text = '<@' + str(member.id) + '> ' + member.name + '#' + member.discriminator
+            now = datetime.datetime.utcnow()
+            delta = now - member.created_at
+            s = delta.total_seconds()
+            if s < 5*86400:
+                embed_text += '\nNew account: created ' + duration_text(s)
+            await self.log_entry(embed_text, title='User Joined', joinleave=True, color=discord.Colour.green(), member=member)
 
     async def on_member_remove(self, member):
-        embed_text = '<@' + str(member.id) + '> ' + member.name + '#' + member.discriminator
-        await self.log_entry(embed_text, title='User Left', joinleave=True, color=discord.Colour.red(), member=member)
+        if not self.testmode:
+            embed_text = '<@' + str(member.id) + '> ' + member.name + '#' + member.discriminator
+            await self.log_entry(embed_text, title='User Left', joinleave=True, color=discord.Colour.red(), member=member)
 
 
 # Call custom bot class
 bot = CustomBot(command_prefix='$', max_messages=20000)
 bot.remove_command('help')
-version = '2.2.2'
+version = '2.3.0'
+
 
 
 # Define helper commands/functions
@@ -457,6 +530,16 @@ class Moderation(commands.Cog, name='Moderation'):
 
 # Admin category
 class Admin(commands.Cog, name='Administrative'):
+    """toggle test mode"""
+    @bot.command(pass_context=True)
+    async def test(self, ctx):
+        bot.testmode = not bot.testmode
+        await ctx.channel.send('Test mode now set to: ' + str(bot.testmode))
+        embed_text = '<@' + str(
+            ctx.author.id) + '> ' + ctx.author.name + '#' + ctx.author.discriminator + ' used `$test` command, set ' + \
+            'test mode to: ' + str(bot.testmode)
+        await bot.log_entry(embed_text, title='Command used')
+
     """Tools for admins to use!"""
     @bot.command(pass_context=True)
     async def updateprefix(self, ctx, prefix: str):
