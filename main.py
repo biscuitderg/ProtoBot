@@ -184,10 +184,7 @@ class CustomBot(commands.Bot):
             if check_permission(highest_role, role_dict, ctx.command):
                 await self.invoke(ctx)
             else:
-                if highest_role in role_list:
-                    await ctx.channel.send('Sowwy, wooks wike u cant use that command, oopsie!')
-                else:
-                    pass
+                pass
         except KeyError:
             pass
 
@@ -232,7 +229,7 @@ class CustomBot(commands.Bot):
 # Call custom bot class
 bot = CustomBot(command_prefix='$', max_messages=20000)
 bot.remove_command('help')
-version = '2.3.0'
+version = '2.3.1'
 
 
 
