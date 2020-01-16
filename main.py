@@ -233,7 +233,7 @@ class CustomBot(commands.Bot):
 # Call custom bot class
 bot = CustomBot(command_prefix='$', max_messages=20000)
 bot.remove_command('help')
-version = '2.3.2'
+version = '2.3.3'
 
 
 
@@ -475,7 +475,7 @@ class Moderation(commands.Cog, name='Moderation'):
             await bot.log_entry(embed_text, title='Command used')
 
     @bot.command(pass_context=True)
-    async def warn(self, ctx, type, user, *, args):
+    async def warn(self, ctx, type, user, *, args=None):
         """Warn for something!"""
         # get user
         p = re.compile('\d+')
