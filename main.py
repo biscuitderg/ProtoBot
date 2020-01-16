@@ -27,7 +27,7 @@ joins_id = 590990121206153267
 starboard_channel = 665048291012116480
 internal_cache = {}
 eastern = pytz.timezone('US/Eastern')
-testmode = True
+testmode = False
 
 # Create custom bot class
 class CustomBot(commands.Bot):
@@ -179,14 +179,18 @@ class CustomBot(commands.Bot):
 
         ctx = await self.get_context(message)
         # Permission check!
-        highest_role = get_highest_role(ctx.author)
-        try:
-            if check_permission(highest_role, role_dict, ctx.command):
-                await self.invoke(ctx)
-            else:
+        if ctx.command:
+            highest_role = get_highest_role(ctx.author)
+            try:
+                if check_permission(highest_role, role_dict, ctx.command.name):
+                    await self.invoke(ctx)
+                else:
+                    if highest_role in role_list:
+                        pass
+                    else:
+                        pass
+            except KeyError:
                 pass
-        except KeyError:
-            pass
 
     async def on_message(self, message):
         if message.author.bot:
@@ -229,7 +233,7 @@ class CustomBot(commands.Bot):
 # Call custom bot class
 bot = CustomBot(command_prefix='$', max_messages=20000)
 bot.remove_command('help')
-version = '2.3.1'
+version = '2.3.2'
 
 
 
@@ -279,10 +283,13 @@ async def check_reminders():
                         try:
                             reminder_date = datetime.datetime.fromisoformat('2' + iso_time[0])
                         except ValueError:
-                            rline = rline.replace('\x00', '')
-                            p = re.compile('\d+\-\d+\-\d+T\d+:\d+\d+:\d+\.\d+')
-                            iso_time = p.findall(rline)
-                            reminder_date = datetime.datetime.fromisoformat(iso_time[0])
+                            try:
+                                rline = rline.replace('\x00', '')
+                                p = re.compile('\d+\-\d+\-\d+T\d+:\d+\d+:\d+\.\d+')
+                                iso_time = p.findall(rline)
+                                reminder_date = datetime.datetime.fromisoformat(iso_time[0])
+                            except ValueError:
+                                reminder_date = datetime.datetime.fromisoformat('20' + iso_time[0])
                     channel = bot.get_channel(int(ids[0]))
                     caller = ids[1]
                     to_send = '<@' + caller + '>: ' + message
@@ -312,6 +319,7 @@ class Misc(commands.Cog, name='Misc.'):
         """Prints help message"""
         highest_role = get_highest_role(ctx.author)
         to_send = help_message(highest_role, bot.command_prefix)
+        print(to_send)
         if to_send:
             await ctx.channel.send(to_send)
 
@@ -340,21 +348,21 @@ class Fun(commands.Cog, name='Fun'):
 class Moderation(commands.Cog, name='Moderation'):
     """Tools for moderators to use!"""
     @bot.command(pass_context=True)
-    async def reminder(self, ctx, duration: int, *args):
+    async def reminder(self, ctx, duration: int, *, args):
         """Sends a reminder after the given amount of time"""
         await asyncio.sleep(1)
         init_message = 'Sending a reminder in ' + str(duration) + ' seconds!'
         if args:
-            reminder_text = ' '.join(args)
+            reminder_text = ''.join(str(i) for i in args)
         else:
             reminder_text = ''
         await add_reminder(ctx, duration, reminder_text=reminder_text)
         await ctx.channel.send(init_message)
 
     @bot.command(pass_context=True)
-    async def kennel(self, ctx, user, *args):
+    async def kennel(self, ctx, user, *, args):
         """Removes all roles from user and adds kennel role!"""
-        reason = ' '.join(args)
+        reason = ''.join(str(i) for i in args)
         # get user, current roles
         p = re.compile('\d+')
         user_id = int(p.findall(user)[0])
@@ -371,7 +379,7 @@ class Moderation(commands.Cog, name='Moderation'):
             else:
                 await user_to_change.create_dm()
                 await user_to_change.dm_channel.send('You have a message waiting in <#' + str(kennel_id) + '> on the /r/yiff server!')
-        except discord.HTTPException or discord.Forbidden:
+        except (discord.HTTPException, discord.Forbidden):
             await ctx.channel.send('Could not send DM!')
         else:
             await ctx.channel.send('User kenneled and notified!')
@@ -383,9 +391,9 @@ class Moderation(commands.Cog, name='Moderation'):
         await ctx.channel.send('Following roles changed for ' + user_to_change.name + '#' + user_to_change.discriminator + ': ' + msg)
 
     @bot.command(pass_context=True)
-    async def mute(self, ctx, user, *args):
+    async def mute(self, ctx, user, *, args):
         """Removes all roles from user and adds muted role!"""
-        reason = ' '.join(args)
+        reason = ''.join(str(i) for i in args)
         # get user, current roles
         p = re.compile('\d+')
         user_id = int(p.findall(user)[0])
@@ -467,13 +475,13 @@ class Moderation(commands.Cog, name='Moderation'):
             await bot.log_entry(embed_text, title='Command used')
 
     @bot.command(pass_context=True)
-    async def warn(self, ctx, type, user, *args):
+    async def warn(self, ctx, type, user, *, args):
         """Warn for something!"""
         # get user
         p = re.compile('\d+')
         try:
             user_id = int(p.findall(user)[0])
-            user_to_dm = await bot.server.fetch_member(user_id)
+            user_to_dm = await bot.fetch_user(user_id)
         except IndexError:
             await ctx.channel.send('Invalid format! Put the warning type before the user!')
             return
@@ -499,7 +507,7 @@ class Moderation(commands.Cog, name='Moderation'):
                   + 'name or nickname. Thanks for understanding ^^ - <@' + str(ctx.author.id) + '> at /r/yiff'
             reason = 'name/nickname'
         elif type.lower() == 'custom' or type.lower() == 'warn':
-            msg = ' '.join(args)
+            msg = ''.join(str(i) for i in args)
             reason = msg
             msg = 'You have received a warning from <@' + str(ctx.author.id) + '> in /r/yiff for: ' + msg
             needsreminder = False
@@ -507,12 +515,8 @@ class Moderation(commands.Cog, name='Moderation'):
             await ctx.channel.send('Invalid warn type given! Try one of these: `nsfw`, `hitler`, `status`, `name`, `custom`!')
             return
         try:
-            if user_to_dm.dm_channel:
-                await user_to_dm.dm_channel.send(msg)
-            else:
-                await user_to_dm.create_dm()
-                await user_to_dm.dm_channel.send(msg)
-        except discord.HTTPException or discord.Forbidden:
+            await user_to_dm.send(msg)
+        except (discord.HTTPException, discord.Forbidden):
             await ctx.channel.send('Could not send DM!')
         else:
             await ctx.channel.send('User ' + user_to_dm.name + '#' + user_to_dm.discriminator + ' notified!')
@@ -527,6 +531,14 @@ class Moderation(commands.Cog, name='Moderation'):
 
 # Admin category
 class Admin(commands.Cog, name='Administrative'):
+    @bot.command(pass_context=True)
+    async def reminders(self, ctx):
+        with open('reminders.txt', 'rb') as file:
+            await ctx.channel.send('Here is the current reminder file!', file=discord.File(fp=file))
+        embed_text = '<@' + str(ctx.author.id) + '> ' + ctx.author.name + '#' + ctx.author.discriminator + \
+                     ' used `$reminders` command'
+        await bot.log_entry(embed_text, title='Command used')
+
     """toggle test mode"""
     @bot.command(pass_context=True)
     async def test(self, ctx):
@@ -628,6 +640,15 @@ class Admin(commands.Cog, name='Administrative'):
 
 class Testing(commands.Cog, name=''):
     """Commands being tested go here!"""
+    @bot.command(psas_context=True)
+    async def dm(self, ctx, user):
+        user_to_dm = await bot.fetch_user(user)
+        try:
+            await user_to_dm.send('test dm')
+        except (discord.HTTPException, discord.Forbidden):
+            await ctx.channel.send('Could not send DM!')
+        else:
+            await ctx.channel.send('User ' + user_to_dm.name + '#' + user_to_dm.discriminator + ' notified!')
 
     @bot.command(pass_context=True)
     async def channelscrape(self, ctx, channel, *args):
@@ -690,7 +711,7 @@ class Testing(commands.Cog, name=''):
          pass"""
 
 bot.recursively_remove_all_commands()
-cogs = [Fun(), Moderation(), Misc(), Admin()]
+cogs = [Fun(), Moderation(), Misc(), Admin(), ]
 for cog in cogs:
     bot.add_cog(cog)
 bot.run(token)

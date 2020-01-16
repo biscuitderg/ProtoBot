@@ -19,13 +19,14 @@ def help_message(role, p):
             to_send += '`' + p + 'mute [user] [optional: reason]` : removes all roles and mutes user\n'
             to_send += '`' + p + 'warn [type] [user] [reason (for custom type)]` : DMs user to notify of given type of warning\n'
             to_send += 'Valid `warn` types: `nsfw`, `hitler`, `status`, `name`, `custom`\n'
-        if role != 'recruit' or role != 'security':
+        if role != 'recruit' and role != 'security':
             to_send += '`' + p + 'role [user] [list of roles]` : roles separated by commas, toggles unless + or - specified before a role\n'
         if role == 'admin' or role == 'head-moderator':
             to_send += '`------Admins------`\n'
             to_send += '`' + p + 'test` : toggles test mode (when running two instances, test mode will prevent one instance from logging joins/leaves)\n'
             to_send += '`' + p + 'log [channel] [optional: month]` : logs given channel for given month or last full month if no month is specified\n'
             to_send += '`' + p + 'updateprefix [new_prefix]` : changes prefix to given prefix (max 3 characters)\n'
+            to_send += '`' + p + 'reminders` : outputs reminders.txt file for debugging'
             to_send += '`protobot reset prefix` : reset prefix to default'
     return to_send
 
