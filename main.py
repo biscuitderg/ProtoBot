@@ -71,7 +71,7 @@ class CustomBot(commands.Bot):
                         reactions = message.reactions
                         url = message.jump_url
                         contains_x = [r for r in reactions if r.emoji == '❌']
-                        if contains_x[0].count == 1:
+                        if contains_x[0].count == 1 and not self.testmode:
                             title = 'Deletion marked'
                             embed_text = 'Message flagged in <#' + str(message.channel.id) + '>'
                             embed_text += '\n❌ count: ' + str(contains_x[0].count)
@@ -96,31 +96,33 @@ class CustomBot(commands.Bot):
                             # send new message
                             await self.embed_channel.send(embed=embed)
                         elif contains_x[0].count > 1:
-                            print('new react count', contains_x[0].count)
                             # fetch old deletion board message
                             messages = await self.embed_channel.history().flatten()
                             embed_message = discord.utils.find(lambda m: m.embeds[0].footer.text[-18:] == str(id), messages)
-                            embed = embed_message.embeds[0]
-                            embed_text = 'Message flagged in <#' + str(message.channel.id) + '>'
-                            embed_text += '\n❌ count: ' + str(contains_x[0].count)
-                            embed_text += '\n[Jump to message](' + url + ')'
+                            if message.channel.id == 510561673971499023 or self.testmode:
+                                pass
+                            else:
+                                embed = embed_message.embeds[0]
+                                embed_text = 'Message flagged in <#' + str(message.channel.id) + '>'
+                                embed_text += '\n❌ count: ' + str(contains_x[0].count)
+                                embed_text += '\n[Jump to message](' + url + ')'
 
-                            image_url = ''
-                            attachments = message.attachments
-                            if len(attachments) == 0:
-                                embed_text += '\n\nNo image provided!'
-                            elif len(attachments) == 1:
-                                image_url = attachments[0].url
-                            elif len(attachments) > 1:
-                                embed_text += '\n\nMultiple images provided, jump to message.'
+                                image_url = ''
+                                attachments = message.attachments
+                                if len(attachments) == 0:
+                                    embed_text += '\n\nNo image provided!'
+                                elif len(attachments) == 1:
+                                    image_url = attachments[0].url
+                                elif len(attachments) > 1:
+                                    embed_text += '\n\nMultiple images provided, jump to message.'
 
-                            new_embed = discord.Embed(title=embed.title, timestamp=embed.timestamp,
-                                                  color=embed.colour, description=embed_text)
-                            if image_url:
-                                new_embed.set_image(url=image_url)
-                            footer_text = 'Message ID: ' + str(id)
-                            new_embed.set_footer(text=footer_text)
-                            await embed_message.edit(embed=new_embed)
+                                new_embed = discord.Embed(title=embed.title, timestamp=embed.timestamp,
+                                                      color=embed.colour, description=embed_text)
+                                if image_url:
+                                    new_embed.set_image(url=image_url)
+                                footer_text = 'Message ID: ' + str(id)
+                                new_embed.set_footer(text=footer_text)
+                                await embed_message.edit(embed=new_embed)
 
     async def on_error(self, event_method, *args, **kwargs):
         """|coro|
@@ -233,7 +235,7 @@ class CustomBot(commands.Bot):
 # Call custom bot class
 bot = CustomBot(command_prefix='$', max_messages=20000)
 bot.remove_command('help')
-version = '2.3.3'
+version = '2.3.4'
 
 
 

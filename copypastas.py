@@ -26,7 +26,7 @@ def help_message(role, p):
             to_send += '`' + p + 'test` : toggles test mode (when running two instances, test mode will prevent one instance from logging joins/leaves)\n'
             to_send += '`' + p + 'log [channel] [optional: month]` : logs given channel for given month or last full month if no month is specified\n'
             to_send += '`' + p + 'updateprefix [new_prefix]` : changes prefix to given prefix (max 3 characters)\n'
-            to_send += '`' + p + 'reminders` : outputs reminders.txt file for debugging'
+            to_send += '`' + p + 'reminders` : outputs reminders.txt file for debugging\n'
             to_send += '`protobot reset prefix` : reset prefix to default'
     return to_send
 
