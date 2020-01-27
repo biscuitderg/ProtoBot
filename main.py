@@ -25,6 +25,9 @@ kennel_id = 533805835424497666
 mute_role_id = 520032107578523678
 joins_id = 590990121206153267
 starboard_channel = 665048291012116480
+ban_channel = 512417242684719136
+unban_channel = 586044083764461578
+carl_id = 633707432144535571
 internal_cache = {}
 eastern = pytz.timezone('US/Eastern')
 testmode = False
@@ -57,6 +60,7 @@ class CustomBot(commands.Bot):
         traceback.print_exception(type(exception), exception, exception.__traceback__, file=sys.stderr)
         await self.error_channel.send('Ignoring exception in command {}:'.format(context.command) + '\n' +
                                       repr(type(exception)) + ' ' + str(exception) + ': ' + repr(exception.__traceback__))
+
 
     async def on_raw_reaction_add(self, payload):
         if payload.emoji.name == '❌':
@@ -151,6 +155,10 @@ class CustomBot(commands.Bot):
         self.me = await self.server.fetch_member(self_id)
         self.error_channel = self.get_channel(error_channel_id)
         self.embed_channel = self.get_channel(starboard_channel)
+        self.ban_channel = self.get_channel(ban_channel)
+        self.unban_channel = self.get_channel(unban_channel)
+        self.carl_channel = self.get_channel(carl_id)
+
         self.testmode = testmode
         if self.testmode:
             print('Test mode!')
@@ -231,11 +239,59 @@ class CustomBot(commands.Bot):
             embed_text = '<@' + str(member.id) + '> ' + member.name + '#' + member.discriminator
             await self.log_entry(embed_text, title='User Left', joinleave=True, color=discord.Colour.red(), member=member)
 
+    async def on_member_ban(self, guild, member):
+        if not self.testmode:
+            # wait a bit to ensure a carl log entry
+            await asyncio.sleep(5)
+            # fetch carl log embed to reproduce responsible moderator
+            messages = await self.carl_channel.history(limit=200).flatten()
+            log_message = discord.utils.find(lambda m: m.embeds[0].footer.text[-18:] == str(member.id) and 'ban' in m.embeds[0].title, messages)
+            embed = log_message.embeds[0]
+            # check for temp ban or perm ban
+            if embed.title.startswith('ban'):
+                type = 'Permanent Ban'
+                reason = embed.description.split('\n')[1][12:]
+                duration = ''
+            elif embed.title.startswith('tem'):
+                type = 'Temp Ban'
+                duration = embed.description.split('\n')[1][14:]
+                reason = embed.description.split('\n')[2][12:]
+            # pull moderator
+            mod_name = embed.description.split('**Responsible moderator:** ')[1]
+            mod = guild.get_member_named(mod_name)
+            to_send = '<@' + str(member.id) + '> ' + str(member.id) + ' banned by <@' + str(mod.id) + '>'
+            to_send += '\nReason: ' + reason + '\nType: ' + type
+            if duration:
+                to_send += '\nDuration: ' + duration
+            to_send += '\nPlease post evidence for ban below.'
+            await self.ban_channel.send(to_send)
+
+    async def on_member_unban(self, guild, member):
+        if not self.testmode:
+            # wait a bit to ensure a carl log entry
+            await asyncio.sleep(5)
+            # fetch carl log embed to reproduce responsible moderator
+            messages = await self.carl_channel.history(limit=200).flatten()
+            log_message = discord.utils.find(lambda m: m.embeds[0].footer.text[-18:] == str(member.id) and 'unban' in m.embeds[0].title, messages)
+            embed = log_message.embeds[0]
+            reason = embed.description.split('\n')[1][12:]
+            to_send = '<@' + str(member.id) + '> ' + str(member.id)
+            if 'Automatic unban' in embed.description:
+                reason = 'Expiration of temporary ban'
+            else:
+                # pull moderator
+                mod_name = embed.description.split('**Responsible moderator:** ')[1]
+                mod = guild.get_member_named(mod_name)
+                to_send += ' unbanned by <@' + str(mod.id) + '>'
+            to_send += '\nReason: ' + reason
+            to_send += '\nPlease post evidence for unban below if appropriate.'
+            await self.unban_channel.send(to_send)
+
 
 # Call custom bot class
 bot = CustomBot(command_prefix='$', max_messages=20000)
 bot.remove_command('help')
-version = '2.3.4'
+version = '2.4.0'
 
 
 
@@ -309,7 +365,10 @@ class Misc(commands.Cog, name='Misc.'):
     @bot.command(pass_context=True)
     async def ping(self, ctx):
         """Pong!"""
-        await ctx.channel.send('Pong!')
+        start = datetime.datetime.timestamp(datetime.datetime.utcnow())
+        msg = await ctx.channel.send('Pinging!')
+        await msg.edit(content=f'Pong! ({( datetime.datetime.timestamp( datetime.datetime.utcnow() ) - start ) * 1000 :.2f} ms)')
+
 
     @bot.command(pass_context=True)
     async def version(self, ctx):
@@ -642,7 +701,17 @@ class Admin(commands.Cog, name='Administrative'):
 
 class Testing(commands.Cog, name=''):
     """Commands being tested go here!"""
-    @bot.command(psas_context=True)
+
+    @bot.command(pass_context=True)
+    async def fetchmessage(self, ctx, channel, id):
+        channel_to_search = await bot.fetch_channel(channel)
+        message = await channel_to_search.fetch_message(id)
+        if message.embeds:
+            for embed in message.embeds:
+                to_send = str(embed.to_dict())
+                await ctx.channel.send(to_send)
+
+    @bot.command(pass_context=True)
     async def dm(self, ctx, user):
         user_to_dm = await bot.fetch_user(user)
         try:
@@ -713,7 +782,7 @@ class Testing(commands.Cog, name=''):
          pass"""
 
 bot.recursively_remove_all_commands()
-cogs = [Fun(), Moderation(), Misc(), Admin(), ]
+cogs = [Fun(), Moderation(), Misc(), Admin()]
 for cog in cogs:
     bot.add_cog(cog)
 bot.run(token)
