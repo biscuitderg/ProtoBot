@@ -291,7 +291,7 @@ class CustomBot(commands.Bot):
 # Call custom bot class
 bot = CustomBot(command_prefix='$', max_messages=20000)
 bot.remove_command('help')
-version = '2.4.0'
+version = '2.4.1'
 
 
 
@@ -421,7 +421,7 @@ class Moderation(commands.Cog, name='Moderation'):
         await ctx.channel.send(init_message)
 
     @bot.command(pass_context=True)
-    async def kennel(self, ctx, user, *, args):
+    async def kennel(self, ctx, user, *, args=None):
         """Removes all roles from user and adds kennel role!"""
         reason = ''.join(str(i) for i in args)
         # get user, current roles
@@ -452,7 +452,7 @@ class Moderation(commands.Cog, name='Moderation'):
         await ctx.channel.send('Following roles changed for ' + user_to_change.name + '#' + user_to_change.discriminator + ': ' + msg)
 
     @bot.command(pass_context=True)
-    async def mute(self, ctx, user, *, args):
+    async def mute(self, ctx, user, *, args=None):
         """Removes all roles from user and adds muted role!"""
         reason = ''.join(str(i) for i in args)
         # get user, current roles
