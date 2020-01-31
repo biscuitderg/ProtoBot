@@ -409,7 +409,7 @@ class Fun(commands.Cog, name='Fun'):
 class Moderation(commands.Cog, name='Moderation'):
     """Tools for moderators to use!"""
     @bot.command(pass_context=True)
-    async def reminder(self, ctx, duration: int, *, args):
+    async def reminder(self, ctx, duration: int, *, args=None):
         """Sends a reminder after the given amount of time"""
         await asyncio.sleep(1)
         init_message = 'Sending a reminder in ' + str(duration) + ' seconds!'
