@@ -291,7 +291,7 @@ class CustomBot(commands.Bot):
 # Call custom bot class
 bot = CustomBot(command_prefix='$', max_messages=20000)
 bot.remove_command('help')
-version = '2.4.1'
+version = '2.4.2'
 
 
 
@@ -641,11 +641,18 @@ class Admin(commands.Cog, name='Administrative'):
             }
         # parse month if passed as an argument
         need_month = True
+        need_year = True
         if args:
             if args[0].isnumeric():
                 month = int(args[0])
                 if 0 < month < 13:
                     need_month = False
+            try:
+                if args[1].isnumeric():
+                    year = int(args[1])
+                    need_year = False
+            except IndexError:
+                pass
         # use regex to pull all strings containing decimal digits
         p = re.compile('\d+')
         # Pull channel string passed as first argument
@@ -664,14 +671,19 @@ class Admin(commands.Cog, name='Administrative'):
             channel_to_log = bot.get_channel(channel_id)
             if channel_to_log:
                 lines = ['logger,timestamp,year,month,day,hour,minute,ids_present,message,attachments\n']
-                messages = await channel_to_log.history(limit=2400).flatten()
-                year = messages[0].created_at.year
+                messages = await channel_to_log.history(limit=None).flatten()
+                if month >= ctx.message.created_at.month and need_year:
+                    year = ctx.message.created_at.year - 1
+                    need_year = False
+                if need_year:
+                    year = ctx.message.created_at.year
                 if need_month:
-                    month = messages[0].created_at.month
+                    month = ctx.message.created_at.month
                     month = (month - 1) % 12
                     if month == 0:
                         month = 12
                         year -= 1
+
                 in_month = [m for m in messages if m.created_at.month == month and m.created_at.year == year]
                 for m in in_month:
                     logger = str(m.author.id)
@@ -701,6 +713,7 @@ class Admin(commands.Cog, name='Administrative'):
 
 class Testing(commands.Cog, name=''):
     """Commands being tested go here!"""
+
 
     @bot.command(pass_context=True)
     async def fetchmessage(self, ctx, channel, id):
