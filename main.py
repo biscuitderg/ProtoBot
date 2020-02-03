@@ -7,6 +7,7 @@ from dotenv import load_dotenv
 from discord.ext import commands
 from aiofile import AIOFile, Writer
 import datetime
+import dateparser
 import re
 import random
 import pytz
@@ -231,7 +232,8 @@ class CustomBot(commands.Bot):
             delta = now - member.created_at
             s = delta.total_seconds()
             if s < 5*86400:
-                embed_text += '\nNew account: created ' + duration_text(s)
+                duration, _, _, _, _ = duration_text(s)
+                embed_text += '\nNew account: created ' + duration
             await self.log_entry(embed_text, title='User Joined', joinleave=True, color=discord.Colour.green(), member=member)
 
     async def on_member_remove(self, member):
@@ -291,7 +293,7 @@ class CustomBot(commands.Bot):
 # Call custom bot class
 bot = CustomBot(command_prefix='$', max_messages=20000)
 bot.remove_command('help')
-version = '2.4.2'
+version = '2.4.3'
 
 
 
@@ -409,14 +411,27 @@ class Fun(commands.Cog, name='Fun'):
 class Moderation(commands.Cog, name='Moderation'):
     """Tools for moderators to use!"""
     @bot.command(pass_context=True)
-    async def reminder(self, ctx, duration: int, *, args=None):
+    async def reminder(self, ctx, *, args=None):
         """Sends a reminder after the given amount of time"""
-        await asyncio.sleep(1)
-        init_message = 'Sending a reminder in ' + str(duration) + ' seconds!'
+
+        args = ''.join(str(i) for i in args)
+        time_str = args.split(':')[0].strip()
+        args = ':'.join(args.split(':')[1:])
+        if time_str.isnumeric():
+            duration = int(time_str)
+        else:
+            time_str = time_str.replace('d', ' days')
+            time_str = time_str.replace('m', ' mins')
+            time_str = time_str.replace('h', ' hours')
+            delta = datetime.datetime.now() - dateparser.parse(time_str)
+            duration = delta.total_seconds()
+
+        init_message = 'Sending a reminder in ' + duration_text(duration, ago=False)[0] + '!'
         if args:
             reminder_text = ''.join(str(i) for i in args)
         else:
             reminder_text = ''
+        reminder_text = reminder_text.lstrip()
         await add_reminder(ctx, duration, reminder_text=reminder_text)
         await ctx.channel.send(init_message)
 

@@ -12,19 +12,19 @@ def help_message(role, p):
         to_send += '`' + p + 'owo` : what\'s this?\n'
         to_send += '`' + p + 'bignut` : █▀█ █▄█ ▀█▀\n'
         to_send += '`' + p + 'seal` : What the fuck did you just fucking say about me, you little bitch?\n'
-        to_send += '`----Moderation----`\n'
-        to_send += '`' + p + 'warn [type] [user] [reason (for custom type)]` : DMs user to notify of given type of warning\n'
-        to_send += 'Valid `warn` types: `nsfw`, `hitler`, `status`, `name`, `custom`\n'
         if role != 'recruit':
-            to_send += '`' + p + 'reminder [duration in seconds] [message]` : sends a reminder after the given number of seconds\n'
+            to_send += '`----Moderation----`\n'
+            to_send += '`' + p + 'reminder [duration in seconds or 4d 3h 2m 1s] : [optional: message]` : sends a reminder after the given number of seconds, note: colon is mandatory if message is to be included\n'
             to_send += '`' + p + 'kennel [user] [optional: reason]` : removes all roles, kennels user and DMs them to notify\n'
             to_send += '`' + p + 'mute [user] [optional: reason]` : removes all roles and mutes user\n'
+            to_send += '`' + p + 'warn [type] [user] [reason (for custom type)]` : DMs user to notify of given type of warning\n'
+            to_send += 'Valid `warn` types: `nsfw`, `hitler`, `status`, `name`, `custom`\n'
         if role != 'recruit' and role != 'security':
             to_send += '`' + p + 'role [user] [list of roles]` : roles separated by commas, toggles unless + or - specified before a role\n'
         if role == 'admin' or role == 'head-moderator':
             to_send += '`------Admins------`\n'
             to_send += '`' + p + 'test` : toggles test mode (when running two instances, test mode will prevent one instance from logging joins/leaves)\n'
-            to_send += '`' + p + 'log [channel] [optional: month] [optional: year]` : logs given channel for given month or last full month if no month is specified\n'
+            to_send += '`' + p + 'log [channel] [optional: month]` : logs given channel for given month or last full month if no month is specified\n'
             to_send += '`' + p + 'updateprefix [new_prefix]` : changes prefix to given prefix (max 3 characters)\n'
             to_send += '`' + p + 'reminders` : outputs reminders.txt file for debugging\n'
             to_send += '`protobot reset prefix` : reset prefix to default'
@@ -43,10 +43,11 @@ for line in lines:
     role_dict[to_dict[0]]['allow'] = [c for c in to_dict[1].split(' ') if c[0] != '!']
     role_dict[to_dict[0]]['deny'] = [c[1:] for c in to_dict[1].split(' ') if c[0] == '!']
 
-def duration_text(s):
+def duration_text(s, ago=True):
     m = int(math.floor(s / 60)) % 60
     h = int(math.floor(s / 3600)) % 24
     d = int(math.floor(s / 86400))
+    sec = round(s % 60)
     if d == 1:
         dtext = '1 day'
     elif d > 1:
@@ -65,6 +66,12 @@ def duration_text(s):
         mtext = str(m) + ' minutes'
     else:
         mtext = ''
+    if sec == 1:
+        stext = '1 second'
+    elif sec > 1:
+        stext = str(sec) + ' seconds'
+    else:
+        stext = ''
     textlist = []
     if dtext:
         textlist.append(dtext)
@@ -72,11 +79,15 @@ def duration_text(s):
         textlist.append(htext)
     if mtext:
         textlist.append(mtext)
+    if stext:
+        textlist.append(stext)
     if textlist:
-        fulltext = ', '.join(textlist) + ' ago'
+        fulltext = ', '.join(textlist)
+        if ago:
+            fulltext += 'ago'
     else:
         fulltext = 'just now'
-    return fulltext
+    return fulltext, d, h, m, sec
 
 
 # Define command to check permissions for a role

@@ -1,5 +1,5 @@
 admin:all
 head-moderator:all
-moderator:all !updateprefix !log
-security:all !updateprefix !channelscrape !log !role !kennel
-recruit:owo bignut seal help version ping
+moderator:all !updateprefix !log !reminders !channelscrape
+security:all !updateprefix !channelscrape !log !role !reminders
+recruit:owo bignut seal help version ping warn
