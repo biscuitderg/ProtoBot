@@ -438,7 +438,10 @@ class Moderation(commands.Cog, name='Moderation'):
     @bot.command(pass_context=True)
     async def kennel(self, ctx, user, *, args=None):
         """Removes all roles from user and adds kennel role!"""
-        reason = ''.join(str(i) for i in args)
+        if args:
+            reason = ''.join(str(i) for i in args)
+        else:
+            reason = 'No reason given'
         # get user, current roles
         p = re.compile('\d+')
         user_id = int(p.findall(user)[0])
