@@ -13,6 +13,7 @@ import random
 import pytz
 import sys
 import traceback
+import markovify
 
 load_dotenv()
 token = os.getenv('DISCORD_TOKEN')
@@ -29,9 +30,13 @@ starboard_channel = 665048291012116480
 ban_channel = 512417242684719136
 unban_channel = 586044083764461578
 carl_id = 633707432144535571
+proto_fun_channel = 683130359818616864
 internal_cache = {}
 eastern = pytz.timezone('US/Eastern')
 testmode = False
+with open('messages.txt', encoding='utf-8') as f:
+    text = f.read()
+text_model = markovify.NewlineText(text)
 
 # Create custom bot class
 class CustomBot(commands.Bot):
@@ -159,14 +164,22 @@ class CustomBot(commands.Bot):
         self.ban_channel = self.get_channel(ban_channel)
         self.unban_channel = self.get_channel(unban_channel)
         self.carl_channel = self.get_channel(carl_id)
+        self.quote_channel = self.get_channel(proto_fun_channel)
+        self.timing = 15*60
 
         self.testmode = testmode
         if self.testmode:
             print('Test mode!')
+        await self.proto_fun()
 
         while True:
             await asyncio.sleep(60)
             await check_reminders()
+
+    async def proto_fun(self):
+        while True:
+            await self.quote_channel.send(text_model.make_short_sentence(140))
+            await asyncio.sleep(self.timing)
 
     async def log_entry(self, embed_text, title='', joinleave=False, color=None, member=None):
         """Add entry to protobot logs"""
@@ -293,7 +306,7 @@ class CustomBot(commands.Bot):
 # Call custom bot class
 bot = CustomBot(command_prefix='$', max_messages=20000)
 bot.remove_command('help')
-version = '2.4.3'
+version = '2.4.5'
 
 
 
@@ -404,6 +417,14 @@ class Fun(commands.Cog, name='Fun'):
     async def seal(self, ctx):
         """Prints random navy seal copypasta!"""
         to_send = random.choice(seals)
+        await ctx.channel.send(to_send)
+
+    @bot.command(pass_context=True)
+    async def timing(self, ctx, duration : int):
+        bot.timing = duration
+        to_send = 'Timing updated to every '
+        txt, _, _, _, _ = duration_text(duration, ago=False)
+        to_send += txt
         await ctx.channel.send(to_send)
 
 

@@ -84,7 +84,7 @@ def duration_text(s, ago=True):
     if textlist:
         fulltext = ', '.join(textlist)
         if ago:
-            fulltext += 'ago'
+            fulltext += ' ago'
     else:
         fulltext = 'just now'
     return fulltext, d, h, m, sec
