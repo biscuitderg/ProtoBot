@@ -72,7 +72,7 @@ class CustomBot(commands.Bot):
         if payload.emoji.name == '❌':
             id = payload.message_id
             for channel in self.get_all_channels():
-                if str(channel.type) == 'text':
+                if str(channel.type) == 'text' and channel.id != 510561673971499023:
                     try:
                         message = await channel.fetch_message(id)
                     except (discord.errors.NotFound, discord.errors.Forbidden):
@@ -105,7 +105,7 @@ class CustomBot(commands.Bot):
 
                             # send new message
                             await self.embed_channel.send(embed=embed)
-                        elif contains_x[0].count > 1:
+                        elif contains_x[0].count > 1 and channel.id != 510561673971499023:
                             # fetch old deletion board message
                             messages = await self.embed_channel.history().flatten()
                             try:
