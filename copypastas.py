@@ -12,13 +12,13 @@ def help_message(role, p):
         to_send += '`' + p + 'owo` : what\'s this?\n'
         to_send += '`' + p + 'bignut` : █▀█ █▄█ ▀█▀\n'
         to_send += '`' + p + 'seal` : What the fuck did you just fucking say about me, you little bitch?\n'
+        to_send += '`----Moderation----`\n'
         if role != 'recruit':
-            to_send += '`----Moderation----`\n'
             to_send += '`' + p + 'reminder [duration in seconds or 4d 3h 2m 1s] : [optional: message]` : sends a reminder after the given number of seconds, note: colon is mandatory if message is to be included\n'
             to_send += '`' + p + 'kennel [user] [optional: reason]` : removes all roles, kennels user and DMs them to notify\n'
             to_send += '`' + p + 'mute [user] [optional: reason]` : removes all roles and mutes user\n'
-            to_send += '`' + p + 'warn [type] [user] [reason (for custom type)]` : DMs user to notify of given type of warning\n'
-            to_send += 'Valid `warn` types: `nsfw`, `hitler`, `status`, `name`, `custom`\n'
+        to_send += '`' + p + 'warn [type] [user] [reason (for custom type)]` : DMs user to notify of given type of warning\n'
+        to_send += 'Valid `warn` types: `nsfw`, `hitler`, `status`, `name`, `custom`\n'
         if role != 'recruit' and role != 'security':
             to_send += '`' + p + 'role [user] [list of roles]` : roles separated by commas, toggles unless + or - specified before a role\n'
         if role == 'admin' or role == 'head-moderator':
@@ -27,7 +27,17 @@ def help_message(role, p):
             to_send += '`' + p + 'log [channel] [optional: month]` : logs given channel for given month or last full month if no month is specified\n'
             to_send += '`' + p + 'updateprefix [new_prefix]` : changes prefix to given prefix (max 3 characters)\n'
             to_send += '`' + p + 'reminders` : outputs reminders.txt file for debugging\n'
-            to_send += '`protobot reset prefix` : reset prefix to default'
+            to_send += '`' + p + 'timing [duration in seconds]` : update fun message timing, prints current timing if no duration is given\n'
+            to_send += '`protobot reset prefix` : reset prefix to default\n'
+    else:
+        to_send += 'Commands:\n'
+        to_send += '`-------Misc-------`\n'
+        to_send += '`' + p + 'version` : prints current bot version\n'
+        to_send += '`' + p + 'ping` : pong!\n'
+        to_send += '`' + p + 'help` : you just used it!\n`-------Fun!-------`\n'
+        to_send += '`' + p + 'owo` : what\'s this?\n'
+        to_send += '`' + p + 'bignut` : █▀█ █▄█ ▀█▀\n'
+        to_send += '`' + p + 'seal` : What the fuck did you just fucking say about me, you little bitch?\n'
     return to_send
 
 
@@ -92,6 +102,8 @@ def duration_text(s, ago=True):
 
 # Define command to check permissions for a role
 def check_permission(role, permissions, command):
+    if role not in ['admin', 'head-moderator', 'moderator', 'security', 'recruit']:
+        role = 'other'
     allow = permissions[role]['allow']
     deny = permissions[role]['deny']
     if command in deny:

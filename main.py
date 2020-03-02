@@ -108,7 +108,11 @@ class CustomBot(commands.Bot):
                         elif contains_x[0].count > 1:
                             # fetch old deletion board message
                             messages = await self.embed_channel.history().flatten()
-                            embed_message = discord.utils.find(lambda m: m.embeds[0].footer.text[-18:] == str(id), messages)
+                            try:
+                                embed_message = discord.utils.find(lambda m: m.embeds[0].footer.text[-18:] == str(id), messages)
+                            except IndexError:
+                                await self.error_channel.send(f'Error finding embed for {url}')
+                                return
                             if message.channel.id == 510561673971499023 or self.testmode:
                                 pass
                             else:
@@ -165,7 +169,7 @@ class CustomBot(commands.Bot):
         self.unban_channel = self.get_channel(unban_channel)
         self.carl_channel = self.get_channel(carl_id)
         self.quote_channel = self.get_channel(proto_fun_channel)
-        self.timing = 15*60
+        self.timing = 30*60
 
         self.testmode = testmode
         if self.testmode:
@@ -306,7 +310,7 @@ class CustomBot(commands.Bot):
 # Call custom bot class
 bot = CustomBot(command_prefix='$', max_messages=20000)
 bot.remove_command('help')
-version = '2.4.5'
+version = '2.4.6'
 
 
 
@@ -420,12 +424,15 @@ class Fun(commands.Cog, name='Fun'):
         await ctx.channel.send(to_send)
 
     @bot.command(pass_context=True)
-    async def timing(self, ctx, duration : int):
-        bot.timing = duration
-        to_send = 'Timing updated to every '
-        txt, _, _, _, _ = duration_text(duration, ago=False)
-        to_send += txt
-        await ctx.channel.send(to_send)
+    async def timing(self, ctx, duration: int = 0):
+        if duration == 0:
+            await ctx.channel.send(f'Message timing is every {duration_text(bot.timing, ago=False)}')
+        else:
+            bot.timing = duration
+            to_send = 'Timing updated to every '
+            txt, _, _, _, _ = duration_text(duration, ago=False)
+            to_send += txt
+            await ctx.channel.send(to_send)
 
 
 # Moderation category
