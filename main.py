@@ -426,7 +426,7 @@ class Fun(commands.Cog, name='Fun'):
     @bot.command(pass_context=True)
     async def timing(self, ctx, duration: int = 0):
         if duration == 0:
-            await ctx.channel.send(f'Message timing is every {duration_text(bot.timing, ago=False)}')
+            await ctx.channel.send(f'Message timing is every {duration_text(bot.timing, ago=False)[0]}')
         else:
             bot.timing = duration
             to_send = 'Timing updated to every '
