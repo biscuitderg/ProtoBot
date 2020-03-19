@@ -41,33 +41,6 @@ text_model = markovify.NewlineText(text)
 # Create custom bot class
 class CustomBot(commands.Bot):
 
-    async def on_command_error(self, context, exception):
-        """|coro|
-
-        The default command error handler provided by the bot.
-
-        By default this prints to :data:`sys.stderr` however it could be
-        overridden to have a different implementation.
-
-        This only fires if you do not specify any listeners for command error.
-        """
-        if self.extra_events.get('on_command_error', None):
-            return
-
-        if hasattr(context.command, 'on_error'):
-            return
-
-        cog = context.cog
-        if cog:
-            if commands.Cog._get_overridden_method(cog.cog_command_error) is not None:
-                return
-
-        print('Ignoring exception in command {}:'.format(context.command), file=sys.stderr)
-        traceback.print_exception(type(exception), exception, exception.__traceback__, file=sys.stderr)
-        await self.error_channel.send('Ignoring exception in command {}:'.format(context.command) + '\n' +
-                                      repr(type(exception)) + ' ' + str(exception) + ': ' + repr(exception.__traceback__))
-
-
     async def on_raw_reaction_add(self, payload):
         if payload.emoji.name == '❌':
             id = payload.message_id

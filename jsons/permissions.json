@@ -1,0 +1,33 @@
+{   
+
+    "> PUT ALL ROLE IDS OF PEOPLE YOU WANT TO GIVE ACCESS TO THE BOT AS A WHOLE, PLEASE NOTE: ":
+    "THIS DOES *NOT* GUARANTEE ACCESS TO THE COMMAND, EVERYTHING ELSE IN THIS FILE ACTS AS AN OVERRIDE TO THIS.",
+    "> IF THIS IS LEFT BLANK, NO ONE CAN ACCESS *ANY* BOT COMMANDS...":
+    "so make sure 2 add chur roles :D",
+
+    "moderator_role_ids": [680218711420043276],
+
+    "> If role ID is in key then users do NOT have permission to use this command. <":
+    "(I.e. if a permission is clear that means everyone who can use these commands has access).",
+    "> If a command is NOT in this list at all, then that means that":
+    "Anyone in the server (including members) can use the command.",
+
+    "updateprefix": [594653782898507776, 507606437904646145, 51027131215393589],
+    "log": [594653782898507776, 507606437904646145, 510271312153935892],
+    "reminders": [594653782898507776, 507606437904646145, 510271312153935892],
+    "channelscrape": [594653782898507776, 507606437904646145, 510271312153935892],
+    "role": [594653782898507776, 510271312153935892],
+    "owo": [],
+    "bignut": [],
+    "seal": [],
+    "help": [],
+    "version": [],
+    "ping": [],
+    "mute": [],
+    "unmute": [],
+
+    "> Any role_ids put in the 'warn' key list apply to *all* warn subcommands, due to the fact that":
+    "the check is only done once, on the parent command. (I.e. $warn add, $warn edit,)",
+
+    "warn": [636344344667881472]
+}
