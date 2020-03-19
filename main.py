@@ -176,14 +176,14 @@ class CustomBot(commands.Bot):
             print('Test mode!')
 
         await self.quote_channel.send(text_model.make_short_sentence(140))
-        self.last_quote_sent = self.quote_channel.last_message.created_at
+        self.last_quote_sent = await self.quote_channel.history(limit=1).flatten()[0].created_at
 
         while True:
             await asyncio.sleep(60)
             await check_reminders()
             if not self.testmode and (datetime.datetime.utcnow() - self.last_quote_sent).total_seconds() > self.timing:
                 await self.quote_channel.send(text_model.make_short_sentence(140))
-                self.last_quote_sent = datetime.datetime.utcnow()
+                self.last_quote_sent = await self.quote_channel.history(limit=1).flatten()[0].created_at
 
     async def log_entry(self, embed_text, title='', joinleave=False, color=None, member=None):
         """Add entry to protobot logs"""
