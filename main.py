@@ -175,10 +175,8 @@ class CustomBot(commands.Bot):
         if self.testmode:
             print('Test mode!')
 
-        self.quote_channel.send(text_model.make_short_sentence(140))
-        self.last_quote_sent = datetime.datetime.utcnow()
-
-        await self.proto_fun()
+        await self.quote_channel.send(text_model.make_short_sentence(140))
+        self.last_quote_sent = self.quote_channel.last_message.created_at
 
         while True:
             await asyncio.sleep(60)
