@@ -169,21 +169,22 @@ class CustomBot(commands.Bot):
         self.unban_channel = self.get_channel(unban_channel)
         self.carl_channel = self.get_channel(carl_id)
         self.quote_channel = self.get_channel(proto_fun_channel)
-        self.timing = 30*60
+        self.timing = 1
 
         self.testmode = testmode
         if self.testmode:
             print('Test mode!')
 
-        await self.quote_channel.send(text_model.make_short_sentence(140))
-        self.last_quote_sent = await self.quote_channel.history(limit=1).flatten()[0].created_at
+        last = await self.quote_channel.history(limit=1).flatten()
+        last_created_at = last[0].created_at
 
         while True:
             await asyncio.sleep(60)
             await check_reminders()
-            if not self.testmode and (datetime.datetime.utcnow() - self.last_quote_sent).total_seconds() > self.timing:
+            if not self.testmode and (datetime.datetime.utcnow() - last_created_at).total_seconds() > self.timing:
                 await self.quote_channel.send(text_model.make_short_sentence(140))
-                self.last_quote_sent = await self.quote_channel.history(limit=1).flatten()[0].created_at
+                last = await self.quote_channel.history(limit=1).flatten()
+                last_created_at = last[0].created_at
 
     async def log_entry(self, embed_text, title='', joinleave=False, color=None, member=None):
         """Add entry to protobot logs"""
