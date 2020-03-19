@@ -174,16 +174,18 @@ class CustomBot(commands.Bot):
         self.testmode = testmode
         if self.testmode:
             print('Test mode!')
+
+        self.quote_channel.send(text_model.make_short_sentence(140))
+        self.last_quote_sent = datetime.datetime.utcnow()
+
         await self.proto_fun()
 
         while True:
             await asyncio.sleep(60)
             await check_reminders()
-
-    async def proto_fun(self):
-        while True:
-            await self.quote_channel.send(text_model.make_short_sentence(140))
-            await asyncio.sleep(self.timing)
+            if not self.testmode and (datetime.datetime.utcnow() - self.last_quote_sent).total_seconds() > self.timing:
+                await self.quote_channel.send(text_model.make_short_sentence(140))
+                self.last_quote_sent = datetime.datetime.utcnow()
 
     async def log_entry(self, embed_text, title='', joinleave=False, color=None, member=None):
         """Add entry to protobot logs"""
@@ -310,7 +312,7 @@ class CustomBot(commands.Bot):
 # Call custom bot class
 bot = CustomBot(command_prefix='$', max_messages=20000)
 bot.remove_command('help')
-version = '2.4.6'
+version = '2.4.7'
 
 
 
