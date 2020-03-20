@@ -29,5 +29,5 @@
     "> Any role_ids put in the 'warn' key list apply to *all* warn subcommands, due to the fact that":
     "the check is only done once, on the parent command. (I.e. $warn add, $warn edit,)",
 
-    "warn": [636344344667881472]
+    "warn": []
 }

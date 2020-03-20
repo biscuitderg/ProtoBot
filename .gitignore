@@ -125,5 +125,3 @@ settings.json
 
 # other
 *.pyc
-*.db-shm
-*.db-wal

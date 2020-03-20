@@ -4,7 +4,6 @@ from cogs.utils.modUtils import Mod_Utils
 from sqlite3 import OperationalError
 from cogs.utils.loggerEntry import *
 
-import apsw
 import asyncio
 import datetime
 import random
