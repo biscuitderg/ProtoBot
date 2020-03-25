@@ -1,6 +1,0 @@
-admin:all
-head-moderator:all
-moderator:all !updateprefix !log !reminders !channelscrape !timing
-security:all !updateprefix !channelscrape !log !role !reminders !timing
-recruit:owo bignut seal help version ping warn
-other:owo bignut seal help version png
