@@ -1,5 +1,6 @@
-import cogs.utils.asqlite as asqlite
 import asyncio
+
+import cogs.utils.asqlite as asqlite
 
 
 class Database:
@@ -8,13 +9,10 @@ class Database:
         self.conn = self.loop.run_until_complete(asqlite.connect(connection))
         self.cursor = self.conn.cursor()
 
-    def ensure(self, db, *statements):
-        """ Synchronous ensurance (i.e. ensure tables exist, etc.) """ 
-        loop = asyncio.get_event_loop()
+    async def ensure(self, *statements):
+        """ Ensures tables exist, etc. """
         for s in statements:
-            loop.run_until_complete(
-                self.execute(s)
-            )
+            await self.execute(s)
 
     async def search(self, table, **kwargs):
         """

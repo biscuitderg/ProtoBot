@@ -1,19 +1,20 @@
+import asyncio
+import datetime
+import json
+import math
+import random
+import re
+from sqlite3 import OperationalError
+
 import discord
 
 from cogs.utils.database import Database
 from cogs.utils.loggerEntry import LoggerEntry, RoleUpdate
-from sqlite3 import OperationalError
-
-import datetime
-import math
-import json
-import re
-import random
-import asyncio
 
 
-class Mod_Utils:
+class ModUtils:
     """ Utils for the Moderator cog, to clean up that file. """
+
     def __init__(self, bot):
         """
         I would put all the channel IDs into a dict for their respective attrs and IDs but
@@ -32,14 +33,9 @@ class Mod_Utils:
         self.ban_channel = self.get_channel('ban_channel')
         self.unban_channel = self.get_channel('unban_channel')
         self.db = Database('./dbs/moderator.db')
-        self._ensure_tables()
 
-    @staticmethod
-    def strptime(date):
-        return datetime.datetime.strptime(date, "%Y-%m-%d %H:%M:%S")
-
-    def _ensure_tables(self):
-        self.db.ensure(
+    async def ensure_tables(self):
+        await self.db.ensure(
             """
             CREATE TABLE IF NOT EXISTS muted
             (user string,
@@ -61,6 +57,14 @@ class Mod_Utils:
             UNIQUE(user, role))
             """
         )
+
+    @property
+    def now(self):
+        return datetime.datetime.utcnow()
+
+    @staticmethod
+    def strptime(date):
+        return datetime.datetime.strptime(date, "%Y-%m-%d %H:%M:%S")
 
     @classmethod
     def get_config(cls, file):
@@ -94,6 +98,14 @@ class Mod_Utils:
         roles = cls.get_config('roles')
         return roles[param]
 
+    async def get_user(self, user_id):
+        user_id = int(user_id)
+        user = self.bot.get_user(user_id)
+        if user is None:
+            return await self.bot.fetch_user(user_id)
+        else:
+            return user
+
     async def _edit_roles(self, ctx, role, user):
         if role in user.roles:
             reason = f'Changed roles for {user}, -{role.name}'
@@ -110,17 +122,20 @@ class Mod_Utils:
         await self.log_entry(ctx, text=reason, entry_type=RoleUpdate, title='Role update')
 
     async def paginate(self, msg, author, embed):
-        """ Paginate accross an embed. """
+        """ Paginate across an embed. """
         emoji_list = ['⏪', '⬅️', '➡️', '⏩']
         footer = embed.footer.text
         pattern = re.compile(r'.*?(\d+).*?(\d+)')
         match = pattern.match(footer)
         page = int(match.group(1))
         end = int(match.group(2))
+
         for reaction in emoji_list:
             await msg.add_reaction(reaction)
-        def check(reaction, user):
-            return user == author and reaction.emoji in emoji_list
+
+        def check(r, u):
+            return u == author and r.emoji in emoji_list
+
         try:
             reaction, user = await self.bot.wait_for(
                 'reaction_add',
@@ -132,13 +147,13 @@ class Mod_Utils:
             await msg.delete()
         else:
             if reaction.emoji == '⏪':
-                embed = await self._paginate(msg, author, embed, 1)
+                await self._paginate(*[msg, author, embed], 1)
             elif reaction.emoji == '⬅️':
-                embed = await self._paginate(msg, author, embed, page - 1)
+                await self._paginate(*[msg, author, embed], page - 1)
             elif reaction.emoji == '➡️':
-                embed = await self._paginate(msg, author, embed, page + 1)
+                await self._paginate(*[msg, author, embed], page + 1)
             else:
-                embed = await self._paginate(msg, author, embed, end)
+                await self._paginate(*[msg, author, embed], end)
 
     async def _paginate(self, msg, author, embed, page):
         total = math.ceil(len(embed.fields) / self.pagination_amt)
@@ -147,65 +162,39 @@ class Mod_Utils:
         else:
             embed.set_footer(text=f"Page {page} of {total}")
             _embed = embed.copy()
-            if page > 0:
-                start = (page - 1) * self.pagination_amt
-                end = start + self.pagination_amt
-                _embed._fields = embed._fields[start:end]
-                await msg.edit(embed=_embed)
-            else:
-                _embed._fields = embed._fields[:]
-                await msg.edit(embed=_embed)
-            return await self.paginate(msg, author, embed)
-
-
-    # Internal methods
-    async def chobject(self, channel):
-        """
-        Returns the channel object using the ID provded.
-
-        Parameters
-        -----------
-        channel: :class:`int`
-        """
-
-        return self.bot.get_channel(channel)
-
-    async def rlobject(self, role):
-        """
-        Returns the channel object using the ID provded.
-
-        Parameters
-        -----------
-        channel: :class:`int`
-        """
-
-        return self.bot.get_role(role)
+            start = (page - 1) * self.pagination_amt
+            end = start + self.pagination_amt
+            em_dict = _embed.to_dict()
+            em_dict["fields"] = em_dict["fields"][start:end]
+            await msg.edit(embed=discord.Embed.from_dict(em_dict))
+            await self.paginate(msg, author, embed)
 
     @LoggerEntry.converter
     async def log_entry(self,
                         ctx,
                         *,
+                        guild=None,
                         title=None,
                         description=None,
                         entry_type: LoggerEntry.check,
-                        user=None,
                         **kwargs):
-        """ Adds an entry to protobot logs """
-        guild = ctx.guild
+        """ Adds an entry to ProtoBot logs """
+        if guild is None:
+            guild = ctx.guild
         color = guild.me.color
         embed = discord.Embed(
             title=title,
             description=description,
             color=color,
-            timestamp=datetime.datetime.utcnow(),
+            timestamp=self.now,
         )
         if entry_type:
             embed.set_author(
-                name=f"New {entry_type()} Event Occured:"
+                name=f"New {entry_type()} Event Occurred:"
             )
         for k, v in kwargs.items():
             # equivalent to "embed.set_{k}(v[key]=v[value])"
-            getattr(embed, k)(**v) # for example "embed.set_description(url=<url>)"
+            getattr(embed, k)(**v)  # for example "embed.set_description(url=<url>)"
 
         _channel = self.get_channel(entry_type.channel)
         channel = guild.get_channel(int(_channel))
@@ -233,10 +222,11 @@ class Mod_Utils:
         
         Parameters
         ------------
-        user: :class:`discord.User`
+        user: :class:`discord.Member`
             The user to look up warns for
         
         Returns
+        ------------
         params: [:class:`str`]
             [ID, author, reason, date]
         """
@@ -324,9 +314,11 @@ class Mod_Utils:
         
         Parameters
         ------------
-        name: :class:`discord.User`
+        identifier: :class:`str`
+            The warn ID to log it for
+        user: :class:`discord.Member`
             The user to log the warn for
-        author: :class:`discord.User`
+        author: :class:`discord.Member`
             The issuer of the warn
         reason: :class:`str`
             The reason to log
@@ -343,7 +335,7 @@ class Mod_Utils:
         
         Parameters
         ------------
-        name: :class:`discord.User`
+        user: :class:`discord.Member`
             The user to check for
         
         Returns
@@ -362,7 +354,7 @@ class Mod_Utils:
         
         Parameters
         ------------
-        name: :class:`discord.User`
+        user: :class:`discord.Member`
             The user to check for
         
         Returns
@@ -381,16 +373,22 @@ class Mod_Utils:
 
         Parameters
         -----------
-        name: :class:`discord.User`
+        user: :class:`discord.Member`
             The user to add.
         roles: [:class:`discord.Role`]
             The role(s) to add.
         """
 
-        await self.db.executemany(
-            "INSERT INTO kenneled (user, role) VALUES (?, ?)",
-            ([(user.id, r.id) for r in roles])
-        )
+        if len(roles) > 0:
+            await self.db.executemany(
+                "INSERT INTO kenneled (user, role) VALUES (?, ?)",
+                ([(user.id, r.id) for r in roles])
+            )
+        else:
+            await self.db.execute(
+                "INSERT INTO kenneled (user, role) VALUES (?, ?)",
+                (user.id, 0)
+            )
 
     async def add_muted(self, user, roles):
         """
@@ -398,16 +396,22 @@ class Mod_Utils:
 
         Parameters
         -----------
-        name: :class:`discord.User`
+        user: :class:`discord.Member`
             The user to add.
         roles: [:class:`discord.Role`]
             The role(s) to add.
         """
 
-        await self.db.executemany(
-            "INSERT INTO muted (user, role) VALUES (?, ?)",
-            ([(user.id, r.id) for r in roles])
-        )
+        if len(roles) > 0:
+            await self.db.executemany(
+                "INSERT INTO muted (user, role) VALUES (?, ?)",
+                ([(user.id, r.id) for r in roles])
+            )
+        else:
+            await self.db.execute(
+                "INSERT INTO muted (user, role) VALUES (?, ?)",
+                (user.id, 0)
+            )
 
     async def remove_kenneled(self, user):
         """
@@ -415,7 +419,7 @@ class Mod_Utils:
 
         Parameters
         ------------
-        user: :class:`discord.User`
+        user: :class:`discord.Member`
 
         Returns
         --------
@@ -434,7 +438,7 @@ class Mod_Utils:
             (user.id,)
         )
         if roles:
-            return [r[0] for r in roles] # stupid sqlite returns a one-tuple for each row, soo
+            return [r[0] for r in roles]  # stupid sqlite returns a one-tuple for each row, soo
         else:
             return None
 
@@ -444,7 +448,7 @@ class Mod_Utils:
 
         Parameters
         ------------
-        user: :class:`discord.User`
+        user: :class:`discord.Member`
 
         Returns
         --------
@@ -473,7 +477,7 @@ class Mod_Utils:
 
         Parameters
         ------------
-        user: :class:`discord.User`
+        user: :class:`discord.Member`
 
         Returns
         --------
@@ -494,7 +498,7 @@ class Mod_Utils:
 
         Parameters
         ------------
-        user: :class:`discord.User`
+        user: :class:`discord.Member`
 
         Returns
         --------

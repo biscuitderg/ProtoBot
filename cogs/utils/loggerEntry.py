@@ -1,8 +1,7 @@
-from discord.ext import commands
 from functools import wraps
 
 
-class InvalidLoggerTypeArgumentException(Exception): # Really long amirite ;)
+class InvalidLoggerTypeArgumentException(Exception):  # Really long amirite ;)
     pass
 
 
@@ -43,6 +42,7 @@ class LoggerEntry:
             raise InvalidLoggerTypeArgumentException(
                 "Invalid logger type passed: '{}'".format(argument)
             )
+
 
 class Warn(LoggerEntry):
     pass

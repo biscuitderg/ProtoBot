@@ -1,9 +1,9 @@
+import datetime
+
 import discord
 from discord.ext import commands
-from cogs.mod import is_user
 
-import datetime
-import sys
+from cogs.mod import is_user
 
 
 class Misc(commands.Cog):
@@ -11,37 +11,25 @@ class Misc(commands.Cog):
         self.bot = bot
         self.bot_version = '2.4.3'
 
-    @commands.command(description='Check current ping.')
+    @commands.command(description="Check client websocket connection latency.")
     @is_user()
     async def ping(self, ctx):
-        """ Return client connection latency. """
+        """ Check client websocket connection latency. """
         latency = self.bot.latency
         embed = discord.Embed(
             title='Ping!',
-            description='{}ms'.format(round(latency * 1000)),
+            description='}ms'.format(round(latency * 1000)),
             timestamp=datetime.datetime.utcnow(),
             color=discord.Color(0xe62169)
         )
 
-    @commands.command(description='Check bot version.')
+    @commands.command(description="Check current bot version.")
     @is_user()
     async def version(self, ctx):
-        """Prints current bot version"""
+        """ Check current bot version. """
         await ctx.send(
-            f'I am currently running on ProtoBot version {self.bot_version} with '
-            'python version {}.{}!'.format(*tuple(sys.version_info)[:2])
-        )
-'''
-    @commands.command(pass_context=True)
-    @is_user()
-    async def help(self, ctx):
-        """Prints help message"""
-        highest_role = get_highest_role(ctx.author)
-        to_send = help_message(highest_role, bot.command_prefix)
-        print(to_send)
-        if to_send:
-            await ctx.channel.send(to_send)
-'''
+            f'I am currently running on ProtoBot version {self.bot_version}'
+        )  # *tuple(sys.version_info)[:2]
 
 
 def setup(bot):

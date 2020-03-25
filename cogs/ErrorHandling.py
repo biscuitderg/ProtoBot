@@ -1,10 +1,12 @@
+import math
+import sys
+import traceback
+
 import discord
 from discord.ext import commands
-from discord.ext.commands.errors import * # pylint: disable=unused-wildcard-import
+from discord.ext.commands.errors import *
 
-import traceback
-import sys
-import math
+from cogs import mod
 
 
 class ErrorHandling(commands.Cog):
@@ -20,12 +22,15 @@ class ErrorHandling(commands.Cog):
 
         if isinstance(error, CommandNotFound):
             return
+        elif isinstance(error, mod.MissingPermissions) or isinstance(error, mod.NoAccess):
+            await ctx.send(f"Error in command: `{cmd}`:\n```{error}```")
         elif isinstance(error, CheckFailure):
             if isinstance(error, NSFWChannelRequired):
                 await ctx.send(f'Error in command `{cmd}`:\n```{error}```')
                 if not isinstance(ctx.channel, discord.DMChannel):
                     await ctx.message.delete()
-            elif isinstance(error, PrivateMessageOnly) or isinstance(error, NoPrivateMessage) or isinstance(error, commands.BotMissingPermissions):
+            elif isinstance(error, PrivateMessageOnly) or isinstance(error, NoPrivateMessage) or isinstance(error,
+                                                                                                            commands.BotMissingPermissions):
                 await ctx.send(f'Error in command `{cmd}`:\n```{error}```')
             else:
                 return
@@ -34,7 +39,7 @@ class ErrorHandling(commands.Cog):
             await ctx.send(f"You must wait {cooldown} before you can use the command ``{cmd}`` again.")
         elif isinstance(error, commands.UserInputError):
             if isinstance(error, commands.MissingRequiredArgument):
-                await ctx.send(help_formatter(cmd, cmd.clean_params))
+                await ctx.send_help(cmd)
             else:
                 await ctx.send(f'Error in command `{cmd}`:\n```{type(error).__name__}: {error}```')
         else:
