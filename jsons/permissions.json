@@ -5,18 +5,18 @@
     "> IF THIS IS LEFT BLANK, NO ONE CAN ACCESS *ANY* BOT COMMANDS...":
     "so make sure 2 add chur roles :D",
 
-    "moderator_role_ids": [680218711420043276],
+    "moderator_role_ids": [507601219041361929, 575216620671074314, 507606437904646145, 510271312153935892, 594653782898507776],
 
     "> If role ID is in key then users do NOT have permission to use this command. <":
     "(I.e. if a permission is clear that means everyone who can use these commands has access).",
     "> If a command is NOT in this list at all, then that means that":
     "Anyone in the server (including members) can use the command.",
 
-    "updateprefix": [594653782898507776, 507606437904646145, 51027131215393589],
-    "log": [594653782898507776, 507606437904646145, 510271312153935892],
-    "reminders": [594653782898507776, 507606437904646145, 510271312153935892],
-    "channelscrape": [594653782898507776, 507606437904646145, 510271312153935892],
-    "role": [594653782898507776, 510271312153935892],
+    "updateprefix": [507606437904646145, 510271312153935892, 594653782898507776],
+    "log": [507606437904646145, 510271312153935892, 594653782898507776],
+    "reminders": [507606437904646145, 510271312153935892, 594653782898507776],
+    "channelscrape": [507606437904646145, 510271312153935892, 594653782898507776],
+    "role": [510271312153935892, 594653782898507776],
     "owo": [],
     "bignut": [],
     "seal": [],
@@ -29,5 +29,5 @@
     "> Any role_ids put in the 'warn' key list apply to *all* warn subcommands, due to the fact that":
     "the check is only done once, on the parent command. (I.e. $warn add, $warn edit,)",
 
-    "warn": []
+    "warn": [594653782898507776]
 }
