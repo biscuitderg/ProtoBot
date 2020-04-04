@@ -1,0 +1,17 @@
+{
+  "Place in the form <className>_channel": "If channel is set to 'null' then it assumes 'LoggerEntry_channel' as its default.",
+  "LoggerEntry_channel": 680222370430320679,
+  "JoinLeave_channel": 590990121206153267,
+  "Ban_channel": 512417242684719136,
+  "Unban_channel": 586044083764461578,
+  "RoleUpdate_channel": null,
+  "Mute_channel": null,
+  "Unmute_channel": null,
+  "CommandUsed_channel": null,
+  "Warn_channel": null,
+  "error_channel": 647470122243588137,
+  "msg_flag_channel": null,
+  "kenneled_channel": 689602957112508436,
+  "starboard_channel": 665048291012116480,
+  "markovify_channel": 690616361298296885
+}
