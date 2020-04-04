@@ -1,5 +1,6 @@
 import json
 import math
+import datetime
 
 import discord
 from discord.ext import commands
@@ -7,6 +8,7 @@ from discord.ext import commands
 from cogs.utils.cExceptions import *
 from cogs.utils.loggerEntry import *
 from cogs.utils.modUtils import ModUtils
+from cogs.utils.database import Database
 
 
 def is_user():
@@ -61,6 +63,28 @@ class Moderator(commands.Cog, ModUtils):
         self.kenneled_role = self.get_role("kenneled_role")
         self.kenneled_channel = self.get_channel("kenneled_channel")
 
+     async def add_reminder(self, author, channel, delta, message):
+        """
+        Adds a reminder to the database.
+
+        Parameters
+        -----------
+        author: :class:`discord.Member`
+            The author of the reminder.
+        channel: :class:`discord.Channel`
+            The channel of the reminder.
+        delta: :class:`datetime.datetime`
+            The date to initiate the reminder.
+        message: :class:`str`
+            The message of the reminder.
+        """
+
+        await self.db.execute(
+            "INSERT INTO reminders (author, channel, delta, message) "
+            "VALUES(?, ?, ?, ?)",
+            (author.id, channel.id, delta, message)
+        )    
+    
     @commands.Cog.listener()
     async def on_ready(self):
         await self.ensure_tables()
@@ -333,6 +357,7 @@ class Moderator(commands.Cog, ModUtils):
             await ctx.send(f"No warn found with ID {identifier}.")
 
     @warn.command(aliases=['del', 'rem'], description="Delete a warn via specified ID.")
+    @commands.has_role(507601219041361929)
     async def remove(self, ctx, identifier):
         """ Delete a warn via specified ID. """
         ret = await self.delete_warn(identifier)
@@ -385,6 +410,55 @@ class Moderator(commands.Cog, ModUtils):
             await self.paginate(msg, author, embed)
         else:
             await ctx.send(f"No warns were found for {user.mention}.")
+    
+    @commands.command(description='Warn a user for a ToS/Rulebreaking pfp, status, or username. \n Valid types are nsfw, hitler, status, or name')
+    @is_user()
+    async def notify(self, ctx, type : str, user : Discord.member):
+        if type.lower() == 'nsfw' or type.lower() == 'pfp':
+            msg = 'We noticed you have a NSFW profile picture. We do not allow this as it violates Discord ToS. If you don\'' \
+                + 't change it within 24 hours we will have no choice but to ban you from the server until you have a SFW '\
+                + 'icon. Thanks for understanding ^^ - <@' + str(ctx.author.id) + '> at /r/yiff'
+            reason = 'NSFW pfp'
+        elif type.lower() == 'hitler':
+            msg = 'We noticed you have a rulebreaking profile picture. We do not allow this as it violates server rules on allowable images. If you don\'' \
+                  + 't change it within 24 hours we will have no choice but to ban you from the server until you have an acceptable ' \
+                  + 'icon. Thanks for understanding ^^ - <@' + str(ctx.author.id) + '> at /r/yiff'
+            reason = 'rulebreaking pfp'
+        elif type.lower() == 'status':
+            msg = 'We noticed you have a rulebreaking Discord status. We do not allow this as it violates server rules on allowable content. If you don\'' \
+                  + 't change it within 24 hours we will have no choice but to ban you from the server until you have an acceptable ' \
+                  + 'status. Thanks for understanding ^^ - <@' + str(ctx.author.id) + '> at /r/yiff'
+            reason = 'status'
+        elif type.lower() == 'name' or type.lower() == 'nickname' or type.lower() == 'nick':
+            msg = 'We noticed you have a rulebreaking Discord name or nickname. We do not allow this as it violates server rules on allowable content. If you don\'' \
+                  + 't change it within 24 hours we will have no choice but to ban you from the server until you have an acceptable ' \
+                  + 'name or nickname. Thanks for understanding ^^ - <@' + str(ctx.author.id) + '> at /r/yiff'
+            reason = 'name/nickname'
+        else:
+            await ctx.channel.send('Invalid warn type given! Try one of these: `nsfw`, `hitler`, `status`, `name`, `custom`!')
+            return
+        try:
+            await user.send(msg)
+        except (discord.HTTPException, discord.Forbidden):
+            await ctx.channel.send('Could not send DM!')
+        else:
+            await ctx.channel.send('User ' + user_to_dm.name + '#' + user_to_dm.discriminator + ' notified!')
+        embed_text = '<@' + str(
+            ctx.author.id) + '> ' + ctx.author.name + '#' + ctx.author.discriminator + ' used `$notify` command on <@'\
+            + str(user_id) + '> ' + user.name + '#' + user.discriminator + '\nReason: ' + reason
+        await self.log_entry(
+            ctx,
+            description=embed_text,
+            entry_type=None
+        )
+        reminder_text = 'Check on <@' + str(user.id) + '>\'s ' + reason + '!'
+        await self.add_reminder(
+            ctx.author,
+            ctx.channel,
+            datetime.datetime.timedelta(seconds=86400),
+            reminder_text
+        )
+        await ctx.channel.send('Reminder added!')
 
 
 def setup(bot):
