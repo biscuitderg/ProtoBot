@@ -82,3 +82,8 @@ class Ban(LoggerEntry):
 
 class Unban(LoggerEntry):
     pass
+
+
+class Notify(LoggerEntry):
+    pass
+
