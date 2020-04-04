@@ -71,27 +71,27 @@ class Events(commands.Cog, ModUtils):
         url = msg.jump_url
 
         if str(emoji) == '❌':
-            await msg.remove_reaction('❌', author)
             channel = msg.channel
-            embed = discord.Embed(
-                title=f'Message flagged in {channel}',
-                description=f"[Jump to message]({url})",
-                color=discord.Color(0xe62169),
-                timestamp=datetime.datetime.utcnow()
-            )
-            if msg.attachments:
-                attachments = msg.attachments
-                embed.set_image(url=attachments[0].url)
-                length = len(attachments)
-                if length > 1:
-                    embed.add_field(
-                        name=f'There were in total {length} attachments to this message.',
-                        value='This was just the first one in the attachments list.'
-                    )
-            embed.set_footer(text=f"Message ID: {msg_id}")
-            await msg.add_reaction('✅')
-            log_channel = channel.guild.get_channel(self.msg_flag_channel)
-            await log_channel.send(embed=embed)
+            if channel.id != 510561673971499023:
+                embed = discord.Embed(
+                    title=f'Message flagged in {channel}',
+                    description=f"[Jump to message]({url})",
+                    color=discord.Color(0xe62169),
+                    timestamp=datetime.datetime.utcnow()
+                )
+                if msg.attachments:
+                    attachments = msg.attachments
+                    embed.set_image(url=attachments[0].url)
+                    length = len(attachments)
+                    if length > 1:
+                        embed.add_field(
+                            name=f'There were in total {length} attachments to this message.',
+                            value='This was just the first one in the attachments list.'
+                        )
+                embed.set_footer(text=f"Message ID: {msg_id}")
+                await msg.add_reaction('✅')
+                log_channel = channel.guild.get_channel(self.msg_flag_channel)
+                await log_channel.send(embed=embed)
 
     @commands.Cog.listener()
     async def on_member_join(self, member):
