@@ -453,10 +453,12 @@ class Moderator(commands.Cog, ModUtils):
             entry_type=Notify
         )
         reminder_text = 'Check on <@' + str(user.id) + '>\'s ' + reason + '!'
+        dt_td = datetime.timedelta(seconds=86400)
+        delta = self.now + dt_td
         await self.add_reminder(
             ctx.author,
             ctx.channel,
-            datetime.timedelta(seconds=86400),
+            delta.replace(microsecond=0),
             reminder_text
         )
         await ctx.channel.send('Reminder added!')
