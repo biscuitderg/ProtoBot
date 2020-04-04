@@ -450,7 +450,7 @@ class Moderator(commands.Cog, ModUtils):
         await self.log_entry(
             ctx,
             description=embed_text,
-            entry_type=None
+            entry_type=Notify
         )
         reminder_text = 'Check on <@' + str(user.id) + '>\'s ' + reason + '!'
         await self.add_reminder(
