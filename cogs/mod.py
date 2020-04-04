@@ -63,27 +63,27 @@ class Moderator(commands.Cog, ModUtils):
         self.kenneled_role = self.get_role("kenneled_role")
         self.kenneled_channel = self.get_channel("kenneled_channel")
 
-     async def add_reminder(self, author, channel, delta, message):
-        """
-        Adds a reminder to the database.
+    async def add_reminder(self, author, channel, delta, message):
+       """
+       Adds a reminder to the database.
 
-        Parameters
-        -----------
-        author: :class:`discord.Member`
-            The author of the reminder.
-        channel: :class:`discord.Channel`
-            The channel of the reminder.
-        delta: :class:`datetime.datetime`
-            The date to initiate the reminder.
-        message: :class:`str`
-            The message of the reminder.
-        """
+       Parameters
+       -----------
+       author: :class:`discord.Member`
+           The author of the reminder.
+       channel: :class:`discord.Channel`
+           The channel of the reminder.
+       delta: :class:`datetime.datetime`
+           The date to initiate the reminder.
+       message: :class:`str`
+           The message of the reminder.
+       """
 
-        await self.db.execute(
-            "INSERT INTO reminders (author, channel, delta, message) "
-            "VALUES(?, ?, ?, ?)",
-            (author.id, channel.id, delta, message)
-        )    
+       await self.db.execute(
+           "INSERT INTO reminders (author, channel, delta, message) "
+           "VALUES(?, ?, ?, ?)",
+           (author.id, channel.id, delta, message)
+       )    
     
     @commands.Cog.listener()
     async def on_ready(self):
