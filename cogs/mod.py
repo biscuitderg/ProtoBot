@@ -317,7 +317,7 @@ class Moderator(commands.Cog, ModUtils):
         await self.log_entry(
             ctx,
             description=f"{author.mention} Warned {user.mention} for {reason}"
-                        f"and with a log ID of `{identifier}`",
+                        f" and with a log ID of `{identifier}`",
             entry_type=Warn
         )
 
