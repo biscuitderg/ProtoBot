@@ -446,7 +446,7 @@ class Moderator(commands.Cog, ModUtils):
             await ctx.channel.send('User ' + user.name + '#' + user.discriminator + ' notified!')
         embed_text = '<@' + str(
             ctx.author.id) + '> ' + ctx.author.name + '#' + ctx.author.discriminator + ' used `$notify` command on <@'\
-            + str(user_id) + '> ' + user.name + '#' + user.discriminator + '\nReason: ' + reason
+            + str(user.id) + '> ' + user.name + '#' + user.discriminator + '\nReason: ' + reason
         await self.log_entry(
             ctx,
             description=embed_text,
