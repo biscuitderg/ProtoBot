@@ -442,7 +442,7 @@ class Moderator(commands.Cog, ModUtils):
         except (discord.HTTPException, discord.Forbidden):
             await ctx.channel.send('Could not send DM!')
         else:
-            await ctx.channel.send('User ' + user_to_dm.name + '#' + user_to_dm.discriminator + ' notified!')
+            await ctx.channel.send('User ' + user.name + '#' + user.discriminator + ' notified!')
         embed_text = '<@' + str(
             ctx.author.id) + '> ' + ctx.author.name + '#' + ctx.author.discriminator + ' used `$notify` command on <@'\
             + str(user_id) + '> ' + user.name + '#' + user.discriminator + '\nReason: ' + reason
