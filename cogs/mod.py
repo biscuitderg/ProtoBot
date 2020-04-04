@@ -35,7 +35,7 @@ def is_user():
             return True
         else:
             """
-            ELse if the command *is* in the JSON file, and there is no blacklisted
+            Else if the command *is* in the JSON file, and there is no blacklisted
             roles specified, everyone who can access the bot in general (i.e.
             moderators, etc.) can use it. But still not normal users. (This is good
             for commands like ban, unban, or just cummands that you want anyone who

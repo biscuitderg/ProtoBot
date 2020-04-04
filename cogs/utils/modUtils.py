@@ -196,7 +196,7 @@ class ModUtils:
             # equivalent to "embed.set_{k}(v[key]=v[value])"
             getattr(embed, k)(**v)  # for example "embed.set_description(url=<url>)"
 
-        _channel = self.get_channel(entry_type.channel)
+        _channel = self.get_channel(entry_type().channel)
         channel = guild.get_channel(int(_channel))
         await channel.send(embed=embed)
 
