@@ -126,3 +126,5 @@ settings.json
 # other
 *.pyc
 *.xml
+*.txt
+.env
