@@ -18,7 +18,7 @@ class Misc(commands.Cog):
         latency = self.bot.latency
         embed = discord.Embed(
             title='Ping!',
-            description='}ms'.format(round(latency * 1000)),
+            description='{}ms'.format(round(latency * 1000)),
             timestamp=datetime.datetime.utcnow(),
             color=discord.Color(0xe62169)
         )
