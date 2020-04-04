@@ -456,7 +456,7 @@ class Moderator(commands.Cog, ModUtils):
         await self.add_reminder(
             ctx.author,
             ctx.channel,
-            datetime.datetime.timedelta(seconds=86400),
+            datetime.timedelta(seconds=86400),
             reminder_text
         )
         await ctx.channel.send('Reminder added!')
