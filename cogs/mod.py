@@ -413,7 +413,7 @@ class Moderator(commands.Cog, ModUtils):
     
     @commands.command(description='Warn a user for a ToS/Rulebreaking pfp, status, or username. \n Valid types are nsfw, hitler, status, or name')
     @is_user()
-    async def notify(self, ctx, type : str, user : Discord.member):
+    async def notify(self, ctx, type : str, user : discord.member):
         if type.lower() == 'nsfw' or type.lower() == 'pfp':
             msg = 'We noticed you have a NSFW profile picture. We do not allow this as it violates Discord ToS. If you don\'' \
                 + 't change it within 24 hours we will have no choice but to ban you from the server until you have a SFW '\
