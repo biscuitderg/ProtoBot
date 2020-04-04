@@ -62,6 +62,7 @@ class Moderator(commands.Cog, ModUtils):
         self.muted_role = self.get_role("muted_role")
         self.kenneled_role = self.get_role("kenneled_role")
         self.kenneled_channel = self.get_channel("kenneled_channel")
+        self.db = Database('./dbs/reminders.db')
 
     async def add_reminder(self, author, channel, delta, message):
        """
