@@ -9,7 +9,7 @@ from cogs.mod import is_user
 class Misc(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-        self.bot_version = '2.4.3'
+        self.bot_version = '3.0.0'
 
     @commands.command(description="Check client websocket connection latency.")
     @is_user()
