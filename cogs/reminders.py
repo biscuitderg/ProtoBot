@@ -108,7 +108,7 @@ class Reminders(commands.Cog, ModUtils):
             (author.id, channel.id, delta, message)
         )
 
-    @commands.command(aliases=['add_reminder', 'remind_me'], description="Set up a new reminder for yourself.")
+    @commands.command(aliases=['add_reminder', 'remind_me', 'reminder'], description="Set up a new reminder for yourself.")
     async def remind(self, ctx, *, message):
         """ Set up a new reminder for yourself. """
         v_pattern = re.compile(r'(in.?)(\d+)')
