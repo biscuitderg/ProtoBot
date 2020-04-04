@@ -22,6 +22,7 @@ class Misc(commands.Cog):
             timestamp=datetime.datetime.utcnow(),
             color=discord.Color(0xe62169)
         )
+        await ctx.send(embed=embed)
 
     @commands.command(description="Check current bot version.")
     @is_user()
