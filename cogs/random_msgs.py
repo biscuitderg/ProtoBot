@@ -13,7 +13,7 @@ class Markovify(commands.Cog, ModUtils):
         self.msg_channel = self.get_channel('markovify_channel')
         self.msgs = None
         self.text_model = None
-        self.cooldown = 1800
+        self.generate_messages.start()
 
     @commands.Cog.listener()
     async def on_ready(self):
@@ -21,16 +21,20 @@ class Markovify(commands.Cog, ModUtils):
             self.msgs = f.read()
         self.text_model = markov.NewlineText(self.msgs)
 
-        while True:
-            msg = self.text_model.make_sentence()
-            channel = self.bot.get_channel(self.msg_channel)
-            await channel.send(msg)
-            await asyncio.sleep(self.cooldown)
+    @tasks.loop(seconds=1800.0)
+    async def generate_messages(self):
+        msg = self.text_model.make_sentence()
+        channel = self.bot.get_channel(self.msg_channel)
+        await channel.send(msg)
+        
+    @generate_messages.before_loop
+    async def before_messages(self):
+        await self.bot.wait_until_ready()
 
     @commands.command(description="Change cooldown of the markovify messages.")
     async def change_cooldown(self, ctx, cooldown: int):
         """ Change cooldown of the markovify messages. """
-        self.cooldown = cooldown
+        self.generate_messages.change_interval(seconds=cooldown)
         await ctx.send("The cooldown has been changed to {}.".format(cooldown))
 
 
