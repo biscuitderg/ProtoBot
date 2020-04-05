@@ -1,7 +1,7 @@
 import asyncio
 
 import markovify as markov  # we would be overriding this with our class if I didn't do this
-from discord.ext import commands
+from discord.ext import commands, tasks
 
 from cogs.utils.modUtils import ModUtils
 
