@@ -501,6 +501,32 @@ class Moderator(commands.Cog, ModUtils):
             reminder_text
         )
         await ctx.channel.send('Reminder added!')
+        
+    @commands.command(description="Ban the specified user")
+    async def ban(self, ctx, user : discord.User, *args):
+        reason = ' '.join(args)
+        if not reason:
+            reason = "No reason given!"
+        await ctx.guild.ban(user, reason=reason)
+        await ctx.send(f"{user.mention} banned!")
+        await self.log_entry(
+            ctx,
+            description=f"{ctx.author.mention} banned {user.mention} for {reason}",
+            entry_type=Ban
+        )
+    
+    @commands.command(description="Unan the specified user")
+    async def unban(self, ctx, user : discord.User, *args):
+        reason = ' '.join(args)
+        if not reason:
+            reason = "No reason given!"
+        await ctx.guild.unban(user, reason=reason)
+        await ctx.send(f"{user.mention} banned!")
+        await self.log_entry(
+            ctx,
+            description=f"{ctx.author.mention} banned {user.mention} for {reason}",
+            entry_type=Unban
+        )
 
 
 def setup(bot):
