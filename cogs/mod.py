@@ -167,6 +167,12 @@ class Moderator(commands.Cog, ModUtils):
                     else:
                         msg = msg[:-2]
                     await ctx.channel.send(msg)
+            logged_entry = f"{ctx.author.mention} used role command on {user_to_change.mention}"
+            await self.log_entry(
+                ctx,
+                description=logged_entry,
+                entry_type=RoleUpdate
+            )
                     
 
     @commands.command(description="Mute a user and remove all their roles.")
