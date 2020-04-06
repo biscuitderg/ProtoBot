@@ -113,28 +113,62 @@ class Moderator(commands.Cog, ModUtils):
 
     @commands.command(description="Adds or removes roles specified to/from a user.")
     @is_user()
-    async def role(self, ctx, user: discord.Member, *, roles: commands.Greedy[discord.Role]):
-        """ Adds or removes roles specified to/from a user. """
-        author = ctx.author
-        if isinstance(roles, list):
-            for role in roles:
-                try:
-                    await self._edit_roles(ctx, role, user)
-                except discord.Forbidden:
-                    await ctx.send(
-                        f"Could not add the `{role.name}` role to `{author.name}`. "
-                        "Please check to see that I have permissions and that the role "
-                        "is not above me."
-                    )
-        else:
+    async def role(self, ctx, user, *args):
+        """Adds removes or toggles roles for a user"""
+        # parse roles to add or remove based on dyno syntax
+        roles = ' '.join(args)
+        roles = [r.strip() for r in roles.split(',')]
+        roles_mentioned = [r[1:].lower() for r in roles if r.startswith('+') or r.startswith('-')]
+        roles_mentioned += [r.lower() for r in roles if not (r.startswith('+') or r.startswith('-'))]
+        roles_mentioned = list(set(roles_mentioned))
+        roles_to_add = [r[1:].lower() for r in roles if r.startswith('+')]
+        roles_to_remove = [r[1:].lower() for r in roles if r.startswith('-')]
+        roles = [r.lower() for r in roles_mentioned if r.lower() not in roles_to_add or r.lower() not in roles_to_remove]
+        # get user, current roles
+        p = re.compile('\d+')
+        user_id = int(p.findall(user)[0])
+        user_to_change = await bot.server.fetch_member(user_id)
+        if user_to_change:
+            user_has = [r.name.lower() for r in user_to_change.roles]
+            roles_to_add += [r for r in roles if r.lower() not in user_has and r.lower() not in roles_to_add]
+            roles_to_remove += [r for r in roles if r.lower() in user_has and r.lower() not in roles_to_remove and r.lower() not in roles_to_add]
+            roles_to_add = [r for r in roles_to_add if r.lower() not in roles_to_remove]
+            failed_roles = []
+            msg = 'Made the following changes to ' + user_to_change.name + '#' + user_to_change.discriminator + ': '
+            add_roles = []
+            remove_roles = []
+            for role in roles_to_add:
+                role_to_add = discord.utils.find(lambda m: m.name.lower() == role, bot.server.roles)
+                if role_to_add and role_to_add < bot.me.top_role:
+                    msg += '+' + role_to_add.name + ', '
+                    add_roles.append(role_to_add)
+                else:
+                    failed_roles.append(role)
+
+            for role in roles_to_remove:
+                role_to_remove = discord.utils.find(lambda m: m.name.lower() == role, bot.server.roles)
+                if role_to_remove and role_to_remove < bot.me.top_role:
+                    msg += '-' + role_to_remove.name + ', '
+                    remove_roles.append(role_to_remove)
+                else:
+                    failed_roles.append(role)
             try:
-                await self._edit_roles(ctx, roles, user)
+                await user_to_change.add_roles(*add_roles)
+                await user_to_change.remove_roles(*remove_roles)
             except discord.Forbidden:
-                await ctx.send(
-                    f"Could not add the `{roles[0].name}` role to `{author.name}`. "
-                    "Please check to see that I have permissions and that the role "
-                    "is not above me."
-                )
+                await ctx.channel.send('I don\'t have the proper permissions!')
+            except discord.HTTPException:
+                await ctx.channel.send('Failed to change roles!')
+            else:
+                if not add_roles and not remove_roles:
+                    await ctx.channel.send('No changes made!')
+                else:
+                    if failed_roles:
+                        msg = msg[:-2] + '\nFailed to change roles: ' + ', '.join(failed_roles)
+                    else:
+                        msg = msg[:-2]
+                    await ctx.channel.send(msg)
+                    
 
     @commands.command(description="Mute a user and remove all their roles.")
     @is_user()
