@@ -15,6 +15,7 @@ class Help(commands.Cog):
         self.uptime = datetime.datetime.utcnow()
 
     @commands.command(description="See what commands you have access to.")
+    @mod.is_user()
     async def help(self, ctx, command=None):
         """ See what commands you have access to. """
         bot = self.bot
