@@ -137,16 +137,16 @@ class Moderator(commands.Cog, ModUtils):
             add_roles = []
             remove_roles = []
             for role in roles_to_add:
-                role_to_add = discord.utils.find(lambda m: m.name.lower() == role, bot.server.roles)
-                if role_to_add and role_to_add < bot.me.top_role:
+                role_to_add = discord.utils.find(lambda m: m.name.lower() == role, ctx.guild.roles)
+                if role_to_add and role_to_add < self.bot.me.top_role:
                     msg += '+' + role_to_add.name + ', '
                     add_roles.append(role_to_add)
                 else:
                     failed_roles.append(role)
 
             for role in roles_to_remove:
-                role_to_remove = discord.utils.find(lambda m: m.name.lower() == role, bot.server.roles)
-                if role_to_remove and role_to_remove < bot.me.top_role:
+                role_to_remove = discord.utils.find(lambda m: m.name.lower() == role, ctx.guild.roles)
+                if role_to_remove and role_to_remove < self.bot.me.top_role:
                     msg += '-' + role_to_remove.name + ', '
                     remove_roles.append(role_to_remove)
                 else:
