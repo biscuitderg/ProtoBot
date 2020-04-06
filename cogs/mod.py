@@ -113,7 +113,7 @@ class Moderator(commands.Cog, ModUtils):
 
     @commands.command(description="Adds or removes roles specified to/from a user.")
     @is_user()
-    async def role(self, ctx, user : discord.member , *args):
+    async def role(self, ctx, user : discord.Member , *args):
         """Adds removes or toggles roles for a user"""
         # parse roles to add or remove based on dyno syntax
         roles = ' '.join(args)
