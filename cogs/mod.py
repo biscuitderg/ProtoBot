@@ -215,6 +215,7 @@ class Moderator(commands.Cog, ModUtils):
             )
 
     @commands.command(description="Kennel a user and remove all their roles.")
+    @is_user()
     async def kennel(self, ctx, user: discord.Member, *, reason="No reason given."):
         """ Kennel a user and remove all their roles. """
         author = ctx.author
@@ -503,6 +504,7 @@ class Moderator(commands.Cog, ModUtils):
         await ctx.channel.send('Reminder added!')
         
     @commands.command(description="Ban the specified user")
+    @is_user()
     async def ban(self, ctx, user : str, *args):
         if user.startswith('<'):
             user = await self.bot.fetch_user(int(user[1:-2]))
@@ -516,6 +518,7 @@ class Moderator(commands.Cog, ModUtils):
         
     
     @commands.command(description="Unban the specified user")
+    @is_user()
     async def unban(self, ctx, user):
         banned_users = await ctx.guild.bans()
         for ban_entry in banned_users:
