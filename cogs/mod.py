@@ -113,7 +113,7 @@ class Moderator(commands.Cog, ModUtils):
 
     @commands.command(description="Adds or removes roles specified to/from a user.")
     @is_user()
-    async def role(self, ctx, user, *args):
+    async def role(self, ctx, user : discord.member , *args):
         """Adds removes or toggles roles for a user"""
         # parse roles to add or remove based on dyno syntax
         roles = ' '.join(args)
@@ -125,9 +125,8 @@ class Moderator(commands.Cog, ModUtils):
         roles_to_remove = [r[1:].lower() for r in roles if r.startswith('-')]
         roles = [r.lower() for r in roles_mentioned if r.lower() not in roles_to_add or r.lower() not in roles_to_remove]
         # get user, current roles
-        p = re.compile('\d+')
-        user_id = int(p.findall(user)[0])
-        user_to_change = await bot.server.fetch_member(user_id)
+        user_id = user.id
+        user_to_change = user
         if user_to_change:
             user_has = [r.name.lower() for r in user_to_change.roles]
             roles_to_add += [r for r in roles if r.lower() not in user_has and r.lower() not in roles_to_add]
