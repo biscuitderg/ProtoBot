@@ -503,31 +503,29 @@ class Moderator(commands.Cog, ModUtils):
         await ctx.channel.send('Reminder added!')
         
     @commands.command(description="Ban the specified user")
-    async def ban(self, ctx, user, *args):
+    async def ban(self, ctx, user : str, *args):
+        if user.startswith('<'):
+            user = await self.bot.fetch_user(int(user[1:-2]))
+        else:
+            user = await self.bot.fetch_user(int(user))
         reason = ' '.join(args)
-        try:
-            user = await commands.converter.UserConverter().convert(ctx, user)
-        except:
-            await ctx.send("Error: user could not be found!")
-            return
         if not reason:
             reason = "No reason given!"
         await ctx.guild.ban(user, reason=reason)
         await ctx.send(f"{user.mention} banned!")
         
-        
     
     @commands.command(description="Unban the specified user")
     async def unban(self, ctx, user, *args):
-        try:
-            user = await commands.converter.UserConverter().convert(ctx, user)
-        except:
-            await ctx.send("Error: user could not be found!")
-            return
+        banned_users = await ctx.guild.bans()
+        for ban_entry in banned_users:
+            banned_user = ban_entry.user
+            if user == banned_user.id or user == banned_user.mention:
+                await ctx.guild.unban(banned_user)
+        
         reason = ' '.join(args)
         if not reason:
             reason = "No reason given!"
-        await ctx.guild.unban(user, reason=reason)
         await ctx.send(f"{user.mention} unbanned!")
 
 
