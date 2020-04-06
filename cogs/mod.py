@@ -516,17 +516,14 @@ class Moderator(commands.Cog, ModUtils):
         
     
     @commands.command(description="Unban the specified user")
-    async def unban(self, ctx, user, *args):
+    async def unban(self, ctx, user):
         banned_users = await ctx.guild.bans()
         for ban_entry in banned_users:
             banned_user = ban_entry.user
             if user == banned_user.id or user == banned_user.mention:
                 await ctx.guild.unban(banned_user)
-        
-        reason = ' '.join(args)
-        if not reason:
-            reason = "No reason given!"
-        await ctx.send(f"{user.mention} unbanned!")
+                await ctx.send(f"{banned_user.mention} unbanned!")
+
 
 
 
