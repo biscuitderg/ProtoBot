@@ -11,15 +11,11 @@ class Markovify(commands.Cog, ModUtils):
         super().__init__(bot)
         self.bot = bot
         self.msg_channel = self.get_channel('markovify_channel')
-        self.msgs = None
-        self.text_model = None
-        self.generate_messages.start()
-
-    @commands.Cog.listener()
-    async def on_ready(self):
         with open('./messages.txt', encoding='utf-8') as f:
             self.msgs = f.read()
         self.text_model = markov.NewlineText(self.msgs)
+        self.generate_messages.start()
+        
 
     @tasks.loop(seconds=1800.0)
     async def generate_messages(self):
